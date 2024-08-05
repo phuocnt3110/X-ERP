@@ -12,7 +12,9 @@ services:
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
-  root_db: 
+  root_db:
+    ports: 
+      - "3306:3306"
     environment: 
       MYSQL_DATABASE: root_db
       MYSQL_PASSWORD: password
