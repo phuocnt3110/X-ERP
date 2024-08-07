@@ -8,7 +8,7 @@ services:
       NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
     image: "nocodb/nocodb:latest"
     ports: 
-      - "443:443"
+      - "80:80"
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
