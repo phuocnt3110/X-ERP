@@ -169,6 +169,7 @@ const openDuplicateDlg = async () => {
     column.value.uidt &&
     [
       UITypes.Lookup,
+      UITypes.XLookup,
       UITypes.Rollup,
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,

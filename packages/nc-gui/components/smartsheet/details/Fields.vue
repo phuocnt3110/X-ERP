@@ -261,6 +261,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
     case UITypes.LinkToAnotherRecord:
     case UITypes.Links:
     case UITypes.Lookup:
+    case UITypes.XLookup:
     case UITypes.Rollup:
     case UITypes.Formula:
       return message.info(t('msg.info.notAvailableAtTheMoment'))

@@ -25,6 +25,7 @@ import { Logger } from '@nestjs/common';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
+import type XLookupColumn from '~/models/XLookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
@@ -3658,6 +3659,80 @@ class BaseModelSqlv2 {
               };
             }
             break;
+            case UITypes.XLookup:
+              {
+                // @ts-ignore
+                const colOptions: XLookupColumn = await column.getColOptions();
+                const pCol = await Column.get({
+                  colId: colOptions.fk_parent_column_id,
+                });
+                const cCol = await Column.get({
+                  colId: colOptions.fk_child_column_id,
+                });
+                const cColTitle = `_nc_xlk_${cCol.title}_${column.title}`
+                proto.__columnAliases[column.title] = {
+                  path: [
+                    cColTitle,
+                    (await Column.get({ colId: colOptions.fk_lookup_column_id }))
+                      ?.title,
+                  ],
+                };
+  
+                //_nc_xlk_column
+                // use dataloader to get batches of parent data together rather than getting them individually
+                // it takes individual keys and callback is invoked with an array of values and we can get the
+                // result for all those together and return the value in the same order as in the array
+                // this way all parents data extracted together
+                const readLoader = new DataLoader(
+                  async (values: string[]) => {
+                    const data = await (
+                      await Model.getBaseModelSQL({
+                        id: pCol.fk_model_id,
+                        dbDriver: this.dbDriver,
+                      })
+                    ).list(
+                      {
+                        fieldsSet: (readLoader as any).args?.fieldsSet,
+                        filterArr: [
+                          new Filter({
+                            id: null,
+                            fk_column_id: pCol.id,
+                            fk_model_id: pCol.fk_model_id,
+                            value: cCol.uidt === UITypes.User ? values.map(e => e[0].id) : values as any[],
+                            comparison_op: 'in',
+                          }),
+                        ],
+                      },
+                      {
+                        ignoreViewFilterAndSort: true,
+                        ignorePagination: true,
+                      },
+                    );
+  
+                    const groupedList = groupBy(data, pCol.title);
+                    return values.map(
+                      async (v: string) => groupedList[v] ? groupedList?.[v] : [],
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
+  
+                // defining BelongsTo read resolver method
+                proto[cColTitle] = async function (args?: any) {
+                  if (
+                    this?.[cCol?.title] === null ||
+                    this?.[cCol?.title] === undefined
+                  )
+                    return null;
+  
+                  (readLoader as any).args = args;
+  
+                  return await readLoader.load(this?.[cCol?.title]);
+                };
+              }
+              break;
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
             {
@@ -4144,6 +4219,7 @@ class BaseModelSqlv2 {
           break;
         case UITypes.LinkToAnotherRecord:
         case UITypes.Lookup:
+        case UITypes.XLookup:
           break;
         case UITypes.QrCode: {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(

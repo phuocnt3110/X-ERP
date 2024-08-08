@@ -13,6 +13,7 @@ import genRollupSelectv2 from '../genRollupSelectv2';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
+import type XLookupColumn from '~/models/XLookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
 import type { User } from '~/models';
@@ -581,6 +582,337 @@ async function _formulaQueryBuilder(params: {
           }
         };
         break;
+      case UITypes.XLookup:
+        aliasToColumn[col.id] = async (): Promise<any> => {
+          let aliasCount = 0;
+          let selectQb;
+          let isMany = false;
+          const alias = `__nc_formula${aliasCount++}`;
+          const lookup = await col.getColOptions<XLookupColumn>();
+          {
+            const childColumn = await lookup.getChildColumn();
+            const parentColumn = await lookup.getParentColumn();
+            const childModel = await childColumn.getModel();
+            await childModel.getColumns();
+            const parentModel = await parentColumn.getModel();
+            await parentModel.getColumns();
+                selectQb = knex(
+                  knex.raw(`?? as ??`, [
+                    baseModelSqlv2.getTnPath(parentModel.table_name),
+                    alias,
+                  ]),
+                ).where(
+                  `${alias}.${parentColumn.column_name}`,
+                  knex.raw(`??`, [
+                    `${
+                      tableAlias ??
+                      baseModelSqlv2.getTnPath(childModel.table_name)
+                    }.${childColumn.column_name}`,
+                  ]),
+                );
+
+            let lookupColumn = await lookup.getLookupColumn();
+            let prevAlias = alias;
+            while (lookupColumn.uidt === UITypes.Lookup) {
+              const nestedAlias = `__nc_formula${aliasCount++}`;
+              const nestedLookup =
+                await lookupColumn.getColOptions<LookupColumn>();
+              const relationCol = await nestedLookup.getRelationColumn();
+              const relation =
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+              // if any of the relation in nested lookup is
+              // not belongs to then ignore the sort option
+              // if (relation.type !== 'bt') continue;
+
+              const childColumn = await relation.getChildColumn();
+              const parentColumn = await relation.getParentColumn();
+              const childModel = await childColumn.getModel();
+              await childModel.getColumns();
+              const parentModel = await parentColumn.getModel();
+              await parentModel.getColumns();
+
+              switch (relation.type) {
+                case 'bt':
+                  {
+                    selectQb.join(
+                      knex.raw(`?? as ??`, [
+                        baseModelSqlv2.getTnPath(parentModel.table_name),
+                        nestedAlias,
+                      ]),
+                      `${prevAlias}.${childColumn.column_name}`,
+                      `${nestedAlias}.${parentColumn.column_name}`,
+                    );
+                  }
+                  break;
+                case 'hm':
+                  {
+                    isMany = true;
+                    selectQb.join(
+                      knex.raw(`?? as ??`, [
+                        baseModelSqlv2.getTnPath(childModel.table_name),
+                        nestedAlias,
+                      ]),
+                      `${prevAlias}.${parentColumn.column_name}`,
+                      `${nestedAlias}.${childColumn.column_name}`,
+                    );
+                  }
+                  break;
+                case 'mm': {
+                  isMany = true;
+                  const mmModel = await relation.getMMModel();
+                  const mmParentColumn = await relation.getMMParentColumn();
+                  const mmChildColumn = await relation.getMMChildColumn();
+
+                  const assocAlias = `__nc${aliasCount++}`;
+
+                  selectQb
+                    .join(
+                      knex.raw(`?? as ??`, [
+                        baseModelSqlv2.getTnPath(mmModel.table_name),
+                        assocAlias,
+                      ]),
+                      `${assocAlias}.${mmChildColumn.column_name}`,
+                      `${prevAlias}.${childColumn.column_name}`,
+                    )
+                    .join(
+                      knex.raw(`?? as ??`, [
+                        baseModelSqlv2.getTnPath(parentModel.table_name),
+                        nestedAlias,
+                      ]),
+                      `${nestedAlias}.${parentColumn.column_name}`,
+                      `${assocAlias}.${mmParentColumn.column_name}`,
+                    );
+                }
+              }
+
+              lookupColumn = await nestedLookup.getLookupColumn();
+              prevAlias = nestedAlias;
+            }
+
+            while (lookupColumn.uidt === UITypes.XLookup) {
+              const nestedAlias = `__nc_formula${aliasCount++}`;
+              const nestedLookup =
+                await lookupColumn.getColOptions<XLookupColumn>();
+              const childColumn = await nestedLookup.getChildColumn();
+              const parentColumn = await nestedLookup.getParentColumn();
+              const childModel = await childColumn.getModel();
+              await childModel.getColumns();
+              const parentModel = await parentColumn.getModel();
+              await parentModel.getColumns();
+
+              selectQb.join(
+                knex.raw(`?? as ??`, [
+                  baseModelSqlv2.getTnPath(childModel.table_name),
+                  nestedAlias,
+                ]),
+                `${prevAlias}.${parentColumn.column_name}`,
+                `${nestedAlias}.${childColumn.column_name}`,
+              );
+
+              lookupColumn = await nestedLookup.getLookupColumn();
+              prevAlias = nestedAlias;
+            }
+
+            switch (lookupColumn.uidt) {
+              case UITypes.Links:
+              case UITypes.Rollup:
+                {
+                  const builder = (
+                    await genRollupSelectv2({
+                      baseModelSqlv2,
+                      knex,
+                      alias: prevAlias,
+                      columnOptions:
+                        (await lookupColumn.getColOptions()) as RollupColumn,
+                    })
+                  ).builder;
+                  // selectQb.select(builder);
+
+                  if (isMany) {
+                    const qb = selectQb;
+                    selectQb = (fn) =>
+                      knex
+                        .raw(
+                          getAggregateFn(fn)({
+                            qb,
+                            knex,
+                            cn: knex.raw(builder).wrap('(', ')'),
+                          }),
+                        )
+                        .wrap('(', ')');
+                  } else {
+                    selectQb.select(knex.raw(builder).wrap('(', ')'));
+                  }
+                }
+                break;
+              case UITypes.LinkToAnotherRecord:
+                {
+                  const nestedAlias = `__nc_formula${aliasCount++}`;
+                  const relation =
+                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
+                  // if (relation.type !== 'bt') continue;
+
+                  const colOptions =
+                    (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
+                  const childColumn = await colOptions.getChildColumn();
+                  const parentColumn = await colOptions.getParentColumn();
+                  const childModel = await childColumn.getModel();
+                  await childModel.getColumns();
+                  const parentModel = await parentColumn.getModel();
+                  await parentModel.getColumns();
+                  let cn;
+                  switch (relation.type) {
+                    case 'bt':
+                      {
+                        selectQb.join(
+                          knex.raw(`?? as ??`, [
+                            baseModelSqlv2.getTnPath(parentModel.table_name),
+                            nestedAlias,
+                          ]),
+                          `${alias}.${childColumn.column_name}`,
+                          `${nestedAlias}.${parentColumn.column_name}`,
+                        );
+                        cn = knex.raw('??.??', [
+                          nestedAlias,
+                          parentModel?.displayValue?.column_name,
+                        ]);
+                      }
+                      break;
+                    case 'hm':
+                      {
+                        isMany = true;
+                        selectQb.join(
+                          knex.raw(`?? as ??`, [
+                            baseModelSqlv2.getTnPath(childModel.table_name),
+                            nestedAlias,
+                          ]),
+                          `${alias}.${parentColumn.column_name}`,
+                          `${nestedAlias}.${childColumn.column_name}`,
+                        );
+                        cn = knex.raw('??.??', [
+                          nestedAlias,
+                          childModel?.displayValue?.column_name,
+                        ]);
+                      }
+                      break;
+                    case 'mm':
+                      {
+                        isMany = true;
+                        const mmModel = await relation.getMMModel();
+                        const mmParentColumn =
+                          await relation.getMMParentColumn();
+                        const mmChildColumn = await relation.getMMChildColumn();
+
+                        const assocAlias = `__nc${aliasCount++}`;
+
+                        selectQb
+                          .join(
+                            knex.raw(`?? as ??`, [
+                              baseModelSqlv2.getTnPath(mmModel.table_name),
+                              assocAlias,
+                            ]),
+                            `${assocAlias}.${mmChildColumn.column_name}`,
+                            `${alias}.${childColumn.column_name}`,
+                          )
+                          .join(
+                            knex.raw(`?? as ??`, [
+                              baseModelSqlv2.getTnPath(parentModel.table_name),
+                              nestedAlias,
+                            ]),
+                            `${nestedAlias}.${parentColumn.column_name}`,
+                            `${assocAlias}.${mmParentColumn.column_name}`,
+                          );
+                      }
+                      cn = knex.raw('??.??', [
+                        nestedAlias,
+                        parentModel?.displayValue?.column_name,
+                      ]);
+                  }
+
+                  selectQb.join(
+                    knex.raw(`?? as ??`, [
+                      baseModelSqlv2.getTnPath(parentModel.table_name),
+                      nestedAlias,
+                    ]),
+                    `${nestedAlias}.${parentColumn.column_name}`,
+                    `${prevAlias}.${childColumn.column_name}`,
+                  );
+
+                  if (isMany) {
+                    const qb = selectQb;
+                    selectQb = (fn) =>
+                      knex
+                        .raw(
+                          getAggregateFn(fn)({
+                            qb,
+                            knex,
+                            cn: lookupColumn.column_name,
+                          }),
+                        )
+                        .wrap('(', ')');
+                  } else {
+                    selectQb.select(`${prevAlias}.${cn}`);
+                  }
+                }
+                break;
+              case UITypes.Formula:
+                {
+                  const formulaOption =
+                    await lookupColumn.getColOptions<FormulaColumn>();
+                  const lookupModel = await lookupColumn.getModel();
+                  const { builder } = await _formulaQueryBuilder(
+                    baseModelSqlv2,
+                    formulaOption.formula,
+                    '',
+                    lookupModel,
+                    aliasToColumn,
+                    formulaOption.getParsedTree(),
+                  );
+                  if (isMany) {
+                    const qb = selectQb;
+                    selectQb = (fn) =>
+                      knex
+                        .raw(
+                          getAggregateFn(fn)({
+                            qb,
+                            knex,
+                            cn: knex.raw(builder).wrap('(', ')'),
+                          }),
+                        )
+                        .wrap('(', ')');
+                  } else {
+                    selectQb.select(builder);
+                  }
+                }
+                break;
+              default:
+                {
+                  const qb = selectQb;
+                  selectQb = (fn) =>
+                    knex
+                      .raw(
+                        getAggregateFn(fn)({
+                          qb,
+                          knex,
+                          cn: `${prevAlias}.${lookupColumn.column_name}`,
+                        }),
+                      )
+                      .wrap('(', ')');
+                }
+
+                break;
+            }
+
+            if (selectQb)
+              return {
+                builder:
+                  typeof selectQb === 'function'
+                    ? selectQb
+                    : knex.raw(selectQb as any).wrap('(', ')'),
+              };
+          }
+      };
+      break;
       case UITypes.Rollup:
       case UITypes.Links:
         aliasToColumn[col.id] = async (): Promise<any> => {

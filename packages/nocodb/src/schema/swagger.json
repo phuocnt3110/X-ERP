@@ -19821,6 +19821,7 @@
               "LongText",
               "LinkToAnotherRecord",
               "Lookup",
+              "XLookup",
               "MultiSelect",
               "Number",
               "Percent",
@@ -19981,6 +19982,9 @@
               },
               {
                 "$ref": "#/components/schemas/LookupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/XLookupColumnReq"
               },
               {
                 "$ref": "#/components/schemas/NormalColumnRequest"
@@ -23004,6 +23008,105 @@
           "id": "rmmtwpsofeqo5"
         }
       },
+      "XLookup": {
+        "description": "Model for XLookup",
+        "examples": [
+          {
+            "id": "lk_mngsu0e45njbxr",
+            "parentId": "m58nhb71gq4oz0l",
+            "fk_column_id": "cl_vdiy9bz7h11kdm",
+            "fk_parent_column_id": "cl_5jestbjfneb649",
+            "fk_child_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "order": 1
+          }
+        ],
+        "title": "Lookup Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "parentId": {
+            "$ref": "#/components/schemas/Id",
+            "description": " table to XLookup Column"
+          },
+          "fk_lookup_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Lookup Column"
+          },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
+          },
+          "fk_child_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among the list",
+            "example": 1
+          }
+        },
+        "x-stoplight": {
+          "id": "53ff6kxwlgjrb"
+        }
+      },
+      "XLookupColumnReq": {
+        "description": "Model for XLookup Column Request",
+        "examples": [
+          {
+            "parentId": "m58nhb71gq4oz0l",
+            "fk_child_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "fk_parent_column_id": "cl_5jestblzneb684",
+            "title": "My Lookup",
+            "uidt": "XLookup"
+          }
+        ],
+        "title": "Lookup Column Request Model",
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "$ref": "#/components/schemas/Id",
+            "description": " table to XLookup Column"
+          },
+          "fk_lookup_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to XLookup Column"
+          },
+          "fk_child_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Child Column"
+          },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Child Key to Parent Column"
+          },
+          "title": {
+            "maxLength": 255,
+            "type": "string",
+            "description": "Lookup Title",
+            "example": "My Lookup"
+          },
+          "uidt": {
+            "enum": [
+              "Lookup"
+            ],
+            "type": "string",
+            "description": "UI DataType"
+          }
+        },
+        "x-stoplight": {
+          "id": "rmmtwpsofeqo5"
+        }
+      },
       "Map": {
         "description": "Model for Map",
         "examples": [
@@ -23375,6 +23478,7 @@
               "LongText",
               "LinkToAnotherRecord",
               "Lookup",
+              "XLookup",
               "MultiSelect",
               "Number",
               "Percent",

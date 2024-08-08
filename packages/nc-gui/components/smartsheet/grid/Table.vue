@@ -356,6 +356,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   if (!skipUpdate) {
     // update/save cell value
     await updateOrSaveRow?.(rowObj, columnObj.title)
+    if(xLookupChildTitles.value.indexOf(columnObj.title) != -1) {
+      await loadData?.()
+    } 
   }
 }
 
@@ -427,6 +430,21 @@ const showSkeleton = computed(
     (disableSkeleton.value !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
     !meta.value,
 )
+
+const xLookupChildTitles = computed(() => {
+    const childTitles = [];
+    fields.value?.forEach(xlkField => {
+      if(isXLookup(xlkField)) {
+        for(const f of fields.value) {
+          if(f.id === xlkField.colOptions.fk_child_column_id) {
+            childTitles.push(f.title);
+            break;
+          }
+        }
+      }
+    });
+    return childTitles;
+})
 
 const cellMeta = computed(() => {
   return dataRef.value.map((row) => {
@@ -763,6 +781,9 @@ const {
 
     // update/save cell value
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+    if(xLookupChildTitles.value.indexOf(columnObj.title) != -1) {
+      await loadData?.()
+    }
   },
   bulkUpdateRows,
   fillHandle,
@@ -1616,6 +1637,13 @@ const loaderText = computed(() => {
     }
   }
 })
+
+const updateOrSaveRowAndReload = async (row, title, state) => {
+  await updateOrSaveRow?.(row, title, state)
+  if(xLookupChildTitles.value.indexOf(title) != -1) {
+    await loadData?.()
+  }
+}
 
 function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
   if (scrollWrapper.value) {

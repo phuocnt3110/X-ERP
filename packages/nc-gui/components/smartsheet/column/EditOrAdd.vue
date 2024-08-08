@@ -98,6 +98,7 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 const onlyNameUpdateOnEditColumns = [
   UITypes.LinkToAnotherRecord,
   UITypes.Lookup,
+  UITypes.XLookup,
   UITypes.Rollup,
   UITypes.Links,
   UITypes.CreatedTime,
@@ -480,6 +481,7 @@ const isFullUpdateAllowed = computed(() => {
         <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
         <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <SmartsheetColumnXLookupOptions v-if="formState.uidt === UITypes.XLookup" v-model:value="formState" />
         <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
         <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
         <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
