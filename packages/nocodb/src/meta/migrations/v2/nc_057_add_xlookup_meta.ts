@@ -5,6 +5,8 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.COL_XLOOKUP, (table) => {
     table.string('id', 20).primary().notNullable();
 
+    table.string('base_id', 20);
+    table.foreign('base_id').references(`${MetaTable.PROJECT}.id`);
     table.string('fk_column_id', 20);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
 

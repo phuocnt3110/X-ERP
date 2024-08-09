@@ -588,14 +588,14 @@ async function _formulaQueryBuilder(params: {
           let selectQb;
           let isMany = false;
           const alias = `__nc_formula${aliasCount++}`;
-          const lookup = await col.getColOptions<XLookupColumn>();
+          const lookup = await col.getColOptions<XLookupColumn>(context);
           {
-            const childColumn = await lookup.getChildColumn();
-            const parentColumn = await lookup.getParentColumn();
-            const childModel = await childColumn.getModel();
-            await childModel.getColumns();
-            const parentModel = await parentColumn.getModel();
-            await parentModel.getColumns();
+            const childColumn = await lookup.getChildColumn(context);
+            const parentColumn = await lookup.getParentColumn(context);
+            const childModel = await childColumn.getModel(context);
+            await childModel.getColumns(context);
+            const parentModel = await parentColumn.getModel(context);
+            await parentModel.getColumns(context);
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
                     baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -611,25 +611,25 @@ async function _formulaQueryBuilder(params: {
                   ]),
                 );
 
-            let lookupColumn = await lookup.getLookupColumn();
+            let lookupColumn = await lookup.getLookupColumn(context);
             let prevAlias = alias;
             while (lookupColumn.uidt === UITypes.Lookup) {
               const nestedAlias = `__nc_formula${aliasCount++}`;
               const nestedLookup =
-                await lookupColumn.getColOptions<LookupColumn>();
-              const relationCol = await nestedLookup.getRelationColumn();
+                await lookupColumn.getColOptions<LookupColumn>(context);
+              const relationCol = await nestedLookup.getRelationColumn(context);
               const relation =
-                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
               // if any of the relation in nested lookup is
               // not belongs to then ignore the sort option
               // if (relation.type !== 'bt') continue;
 
-              const childColumn = await relation.getChildColumn();
-              const parentColumn = await relation.getParentColumn();
-              const childModel = await childColumn.getModel();
-              await childModel.getColumns();
-              const parentModel = await parentColumn.getModel();
-              await parentModel.getColumns();
+              const childColumn = await relation.getChildColumn(context);
+              const parentColumn = await relation.getParentColumn(context);
+              const childModel = await childColumn.getModel(context);
+              await childModel.getColumns(context);
+              const parentModel = await parentColumn.getModel(context);
+              await parentModel.getColumns(context);
 
               switch (relation.type) {
                 case 'bt':
@@ -659,9 +659,9 @@ async function _formulaQueryBuilder(params: {
                   break;
                 case 'mm': {
                   isMany = true;
-                  const mmModel = await relation.getMMModel();
-                  const mmParentColumn = await relation.getMMParentColumn();
-                  const mmChildColumn = await relation.getMMChildColumn();
+                  const mmModel = await relation.getMMModel(context);
+                  const mmParentColumn = await relation.getMMParentColumn(context);
+                  const mmChildColumn = await relation.getMMChildColumn(context);
 
                   const assocAlias = `__nc${aliasCount++}`;
 
@@ -685,20 +685,20 @@ async function _formulaQueryBuilder(params: {
                 }
               }
 
-              lookupColumn = await nestedLookup.getLookupColumn();
+              lookupColumn = await nestedLookup.getLookupColumn(context);
               prevAlias = nestedAlias;
             }
 
             while (lookupColumn.uidt === UITypes.XLookup) {
               const nestedAlias = `__nc_formula${aliasCount++}`;
               const nestedLookup =
-                await lookupColumn.getColOptions<XLookupColumn>();
-              const childColumn = await nestedLookup.getChildColumn();
-              const parentColumn = await nestedLookup.getParentColumn();
-              const childModel = await childColumn.getModel();
-              await childModel.getColumns();
-              const parentModel = await parentColumn.getModel();
-              await parentModel.getColumns();
+                await lookupColumn.getColOptions<XLookupColumn>(context);
+              const childColumn = await nestedLookup.getChildColumn(context);
+              const parentColumn = await nestedLookup.getParentColumn(context);
+              const childModel = await childColumn.getModel(context);
+              await childModel.getColumns(context);
+              const parentModel = await parentColumn.getModel(context);
+              await parentModel.getColumns(context);
 
               selectQb.join(
                 knex.raw(`?? as ??`, [
@@ -709,7 +709,7 @@ async function _formulaQueryBuilder(params: {
                 `${nestedAlias}.${childColumn.column_name}`,
               );
 
-              lookupColumn = await nestedLookup.getLookupColumn();
+              lookupColumn = await nestedLookup.getLookupColumn(context);
               prevAlias = nestedAlias;
             }
 
@@ -723,7 +723,7 @@ async function _formulaQueryBuilder(params: {
                       knex,
                       alias: prevAlias,
                       columnOptions:
-                        (await lookupColumn.getColOptions()) as RollupColumn,
+                        (await lookupColumn.getColOptions(context)) as RollupColumn,
                     })
                   ).builder;
                   // selectQb.select(builder);
@@ -749,17 +749,17 @@ async function _formulaQueryBuilder(params: {
                 {
                   const nestedAlias = `__nc_formula${aliasCount++}`;
                   const relation =
-                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
+                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(context);
                   // if (relation.type !== 'bt') continue;
 
                   const colOptions =
-                    (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
-                  const childColumn = await colOptions.getChildColumn();
-                  const parentColumn = await colOptions.getParentColumn();
-                  const childModel = await childColumn.getModel();
-                  await childModel.getColumns();
-                  const parentModel = await parentColumn.getModel();
-                  await parentModel.getColumns();
+                    (await lookupColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
+                  const childColumn = await colOptions.getChildColumn(context);
+                  const parentColumn = await colOptions.getParentColumn(context);
+                  const childModel = await childColumn.getModel(context);
+                  await childModel.getColumns(context);
+                  const parentModel = await parentColumn.getModel(context);
+                  await parentModel.getColumns(context);
                   let cn;
                   switch (relation.type) {
                     case 'bt':
@@ -798,10 +798,10 @@ async function _formulaQueryBuilder(params: {
                     case 'mm':
                       {
                         isMany = true;
-                        const mmModel = await relation.getMMModel();
+                        const mmModel = await relation.getMMModel(context);
                         const mmParentColumn =
-                          await relation.getMMParentColumn();
-                        const mmChildColumn = await relation.getMMChildColumn();
+                          await relation.getMMParentColumn(context);
+                        const mmChildColumn = await relation.getMMChildColumn(context);
 
                         const assocAlias = `__nc${aliasCount++}`;
 
@@ -858,16 +858,16 @@ async function _formulaQueryBuilder(params: {
               case UITypes.Formula:
                 {
                   const formulaOption =
-                    await lookupColumn.getColOptions<FormulaColumn>();
-                  const lookupModel = await lookupColumn.getModel();
-                  const { builder } = await _formulaQueryBuilder(
+                    await lookupColumn.getColOptions<FormulaColumn>(context);
+                  const lookupModel = await lookupColumn.getModel(context);
+                  const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
-                    formulaOption.formula,
-                    '',
-                    lookupModel,
+                    _tree: formulaOption.formula,
+                    alias: '',
+                    model: lookupModel,
                     aliasToColumn,
-                    formulaOption.getParsedTree(),
-                  );
+                    parsedTree: formulaOption.getParsedTree(),
+                  });
                   if (isMany) {
                     const qb = selectQb;
                     selectQb = (fn) =>

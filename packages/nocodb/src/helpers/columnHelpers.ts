@@ -339,6 +339,7 @@ export async function validateLookupPayload(
 }
 
 export async function validateXLookupPayload(
+  context: NcContext,
   payload: ColumnReqType,
   columnId?: string,
 ) {
@@ -355,10 +356,10 @@ export async function validateXLookupPayload(
       // check if lookup column is same as column itself
       if (columnId === lkCol.fk_lookup_column_id)
         throw new Error('Circular lookup reference not allowed');
-      lkCol = await Column.get({ colId: lkCol.fk_lookup_column_id }).then(
+      lkCol = await Column.get(context, { colId: lkCol.fk_lookup_column_id }).then(
         (c: Column) => {
           if (c.uidt === 'XLookup') {
-            return c.getColOptions<XLookupColumn>();
+            return c.getColOptions<XLookupColumn>(context);
           }
           return null;
         },
@@ -366,7 +367,7 @@ export async function validateXLookupPayload(
     }
   }
 
-  const childColumn = await Column.get({
+  const childColumn = await Column.get(context, {
     colId: (payload as XLookupColumnReqType).fk_child_column_id,
   })
 
@@ -375,14 +376,14 @@ export async function validateXLookupPayload(
   }
 
   let parentColumn: Column = await(
-    await Column.get({
+    await Column.get(context, {
       colId: (payload as XLookupColumnReqType).fk_parent_column_id,
   })
   )
 
-  const relatedTable = await parentColumn.getModel();
+  const relatedTable = await parentColumn.getModel(context);
   if (
-    !(await relatedTable.getColumns()).find(
+    !(await relatedTable.getColumns(context)).find(
       (c) => c.id === (payload as XLookupColumnReqType).fk_lookup_column_id,
     )
   )

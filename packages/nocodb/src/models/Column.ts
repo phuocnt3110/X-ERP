@@ -254,6 +254,7 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.XLookup: {
         // XLookupColumn.insert()
         await XLookupColumn.insert(
+          context,
           {
             parentId: column.parentId,
             fk_parent_column_id: column.fk_parent_column_id,
@@ -475,7 +476,7 @@ export default class Column<T = any> implements ColumnType {
         res = await LookupColumn.read(context, this.id, ncMeta);
         break;
       case UITypes.XLookup:
-        res = await XLookupColumn.read(this.id, ncMeta);
+        res = await XLookupColumn.read(context, this.id, ncMeta);
         break;
       case UITypes.Rollup:
         res = await RollupColumn.read(context, this.id, ncMeta);
@@ -671,10 +672,7 @@ export default class Column<T = any> implements ColumnType {
     if (colData) {
       const column = new Column(colData);
       await column.getColOptions(
-        {
-          workspace_id: column.fk_workspace_id,
-          base_id: column.base_id,
-        },
+        context,
         ncMeta,
       );
       return column;
@@ -708,7 +706,7 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, qrCodeCol.fk_column_id, ncMeta);
       }
     }
-
+  
     {
       const barcodeCols = await ncMeta.metaList2(
         context.workspace_id,
@@ -742,23 +740,22 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, lookup.fk_column_id, ncMeta);
       }
     }
-
-      // get xlookup columns and delete
-      {
+    // get xlookup columns and delete
+    {
       const cachedList = await NocoCache.getList(CacheScope.COL_XLOOKUP, [id]);
       let { list: lookups } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !lookups.length) {
-        lookups = await ncMeta.metaList2(null, null, MetaTable.COL_XLOOKUP, {
+        lookups = await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
           condition: { fk_lookup_column_id: id },
         });
         lookups = lookups.concat(
-          await ncMeta.metaList2(null, null, MetaTable.COL_XLOOKUP, {
+          await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
             condition: { fk_child_column_id: id },
           })
         );
         lookups = lookups.concat(
-          await ncMeta.metaList2(null, null, MetaTable.COL_XLOOKUP, {
+          await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
             condition: { fk_parent_column_id: id },
           })
         );
@@ -767,7 +764,6 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(lookup.fk_column_id, ncMeta);
       }
     }
-    
     // get rollup/links column and delete
     {
       const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
@@ -787,7 +783,6 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, rollup.fk_column_id, ncMeta);
       }
     }
-
     {
       const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
         col.fk_model_id,
@@ -828,7 +823,6 @@ export default class Column<T = any> implements ColumnType {
           );
       }
     }
-
     //  if relation column check lookup and rollup and delete
     if (isLinksOrLTAR(col.uidt)) {
       {
@@ -871,7 +865,6 @@ export default class Column<T = any> implements ColumnType {
         }
       }
     }
-
     // delete sorts
     {
       const cachedList = await NocoCache.getList(CacheScope.SORT, [id]);

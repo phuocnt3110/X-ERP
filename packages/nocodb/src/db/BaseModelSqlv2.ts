@@ -3663,17 +3663,17 @@ class BaseModelSqlv2 {
               {
                 // @ts-ignore
                 const colOptions: XLookupColumn = await column.getColOptions();
-                const pCol = await Column.get({
+                const pCol = await Column.get(this.context, {
                   colId: colOptions.fk_parent_column_id,
                 });
-                const cCol = await Column.get({
+                const cCol = await Column.get(this.context, {
                   colId: colOptions.fk_child_column_id,
                 });
                 const cColTitle = `_nc_xlk_${cCol.title}_${column.title}`
                 proto.__columnAliases[column.title] = {
                   path: [
                     cColTitle,
-                    (await Column.get({ colId: colOptions.fk_lookup_column_id }))
+                    (await Column.get(this.context, { colId: colOptions.fk_lookup_column_id }))
                       ?.title,
                   ],
                 };
@@ -3684,9 +3684,9 @@ class BaseModelSqlv2 {
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
                 const readLoader = new DataLoader(
-                  async (values: string[]) => {
+                  async (values: any[]) => {
                     const data = await (
-                      await Model.getBaseModelSQL({
+                      await Model.getBaseModelSQL(this.context, {
                         id: pCol.fk_model_id,
                         dbDriver: this.dbDriver,
                       })

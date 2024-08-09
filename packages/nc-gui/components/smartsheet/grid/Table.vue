@@ -389,6 +389,8 @@ function makeEditable(row: Row, col: ColumnType) {
     return
   }
 
+  edittedColumn = col
+
   return (editEnabled.value = true)
 }
 
@@ -430,6 +432,8 @@ const showSkeleton = computed(
     (disableSkeleton.value !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
     !meta.value,
 )
+
+var edittedColumn: ColumnType = undefined
 
 const xLookupChildTitles = computed(() => {
     const childTitles = [];
@@ -636,7 +640,7 @@ const {
       }
     } else if (e.key === 'Escape') {
       if (editEnabled.value) {
-        editEnabled.value = false
+        updateEditEnable(false)
         return true
       }
     } else if (e.key === 'Enter') {
@@ -645,7 +649,7 @@ const {
         return true
       }
       if (editEnabled.value) {
-        editEnabled.value = false
+        updateEditEnable(false)
         return true
       }
     } else if (e.key === 'Tab') {
@@ -922,7 +926,7 @@ onClickOutside(tableBodyEl, (e) => {
 const onNavigate = (dir: NavigateDir) => {
   if (activeCell.row === null || activeCell.col === null) return
 
-  editEnabled.value = false
+  updateEditEnable(false)
   clearSelectedRange()
 
   switch (dir) {
@@ -1638,11 +1642,17 @@ const loaderText = computed(() => {
   }
 })
 
-const updateOrSaveRowAndReload = async (row, title, state) => {
-  await updateOrSaveRow?.(row, title, state)
-  if(xLookupChildTitles.value.indexOf(title) != -1) {
-    await loadData?.()
+const updateEditEnable = (event) => {
+  if(activeCell.row != null && activeCell.col != null && 
+    editEnabled.value && !event && 
+    edittedColumn !== undefined && xLookupChildTitles.value.indexOf(edittedColumn.title) != -1) {
+      setTimeout(
+        () => loadData?.(),
+        500
+      )
   }
+
+  editEnabled.value = event
 }
 
 function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
@@ -2139,10 +2149,10 @@ onKeyStroke('ArrowDown', onDown)
                             :row-index="rowIndex"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
                             :read-only="!hasEditPermission"
-                            @update:edit-enabled="editEnabled = $event"
+                            @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, fields[0].title, state)"
                             @navigate="onNavigate"
-                            @cancel="editEnabled = false"
+                            @cancel="updateEditEnable(false)"
                           />
                         </div>
                       </SmartsheetTableDataCell>
@@ -2202,10 +2212,10 @@ onKeyStroke('ArrowDown', onDown)
                             :row-index="rowIndex"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                             :read-only="!hasEditPermission"
-                            @update:edit-enabled="editEnabled = $event"
+                            @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, columnObj.title, state)"
                             @navigate="onNavigate"
-                            @cancel="editEnabled = false"
+                            @cancel="updateEditEnable(false)"
                           />
                         </div>
                       </SmartsheetTableDataCell>

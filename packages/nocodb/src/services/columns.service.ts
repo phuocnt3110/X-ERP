@@ -459,7 +459,7 @@ export class ColumnsService {
           }
         }
 
-        await this.updateRollupOrLookup(colBody, column, source, reuse, ncMeta);
+        await this.updateRollupOrLookup(context, colBody, column, source, reuse, ncMeta);
       } else {
         NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
@@ -1625,29 +1625,27 @@ export class ColumnsService {
         {
           await validateLookupPayload(context, param.column);
 
-          const column = await Column.insert({
+          await Column.insert(context, {
+            ...colBody,
+            fk_model_id: table.id,
+          });
+        }
+        break;
+      case UITypes.XLookup:
+        {
+          await validateXLookupPayload(context, param.column);
+
+          const column = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
           });
 
           const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-            ProjectMgrv2.getSqlMgr({
+            ProjectMgrv2.getSqlMgr(context, {
               id: source.base_id,
             })
           );
-          await this.createXLookupParentColIndex(source, colBody, column.id, ncMeta, sqlMgr);
-        }
-        break;
-      case UITypes.XLookup:
-        {
-          await validateXLookupPayload(param.column);
-
-          await Column.insert({
-            ...colBody,
-            fk_model_id: table.id,
-          });
-                    
-          await this.createXLookupParentColIndex(source, colBody, reuse, ncMeta);
+          await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
         }
         break;
       case UITypes.Links:
@@ -2214,18 +2212,18 @@ export class ColumnsService {
         break;
       case UITypes.XLookup:
         // Delete parent col index
-        const pColumn = await Column.get({ colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
+        const pColumn = await Column.get(context, { colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
         if(pColumn.meta && pColumn.meta.xlk_refer) {
           var i = pColumn.meta.xlk_refer.indexOf(param.columnId);
           if (i !== -1) {
             pColumn.meta.xlk_refer.splice(i, 1);
-            await Column.updateMeta({
+            await Column.updateMeta(context, {
               colId: (column.colOptions as XLookupType).fk_parent_column_id,
               meta: {'xlk_refer': pColumn.meta.xlk_refer},
             });
           }
           if(!pColumn.pk && pColumn.meta.xlk_refer.length === 0) {
-            await this.deleteXLookupParentColIndex(source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
+            await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
           }
         }
         await Column.delete(context, param.columnId, ncMeta);
@@ -3344,18 +3342,19 @@ export class ColumnsService {
     await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
   async createXLookupParentColIndex(
+    context: NcContext,
     source: any,
     colBody: any, 
     colId: string,
     ncMeta: MetaService,
     sqlMgr: SqlMgrv2) {
-    const pColumn = await Column.get({ colId: colBody.fk_parent_column_id }, ncMeta);
+    const pColumn = await Column.get(context, { colId: colBody.fk_parent_column_id }, ncMeta);
     if(!pColumn.pk && (!pColumn.meta || !pColumn.meta.xlk_refer || pColumn.meta.xlk_refer.length == 0)) {
-      const pModel = await Model.getByIdOrName(
+      const pModel = await Model.getByIdOrName(context, 
         { id: colBody.parentId },
         ncMeta,
       );
-      await this.createColumnIndex({
+      await this.createColumnIndex(context, {
         column: new Column({
           column_name: pColumn.column_name,
           fk_model_id: pModel.id,
@@ -3372,7 +3371,7 @@ export class ColumnsService {
     const i = xlkRefer.indexOf(colId);
     if (i === -1) {
       xlkRefer.push(colId);
-      await Column.updateMeta({
+      await Column.updateMeta(context, {
         colId: colBody.fk_parent_column_id,
         meta: {'xlk_refer': xlkRefer},
       });
@@ -3380,14 +3379,15 @@ export class ColumnsService {
   }
 
   async deleteXLookupParentColIndex(
+    context: NcContext,
     source,
     parent_col_id,
     sqlMgr,
     indexName = null,
     non_unique_original = true
   ) {
-    const pColumn = await Column.get({ colId: parent_col_id });
-    const model = await pColumn.getModel();
+    const pColumn = await Column.get(context, { colId: parent_col_id });
+    const model = await pColumn.getModel(context);
     const indexArgs = {
       columns: [pColumn.column_name],
       tn: model.table_name,
@@ -3397,7 +3397,13 @@ export class ColumnsService {
     sqlMgr.sqlOpPlus(source, 'indexDelete', indexArgs);
   }
 
-  async updateRollupOrLookup(colBody: any, column: Column<any>, source: any, reuse: ReusableParams, ncMeta: MetaService) {
+  async updateRollupOrLookup(
+    context: NcContext,
+    colBody: any,
+    column: Column<any>,
+    source: any,
+    reuse: ReusableParams,
+    ncMeta: MetaService) {
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
@@ -3418,34 +3424,34 @@ export class ColumnsService {
         'fk_child_column_id',
       ])
     ) {
-      await validateXLookupPayload(colBody, column.id);
+        await validateXLookupPayload(context, colBody, column.id);
       
       const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr({
+        ProjectMgrv2.getSqlMgr(context, {
           id: source.base_id,
         })
       )
       
       if ((column.colOptions as XLookupType).fk_parent_column_id != colBody.fk_parent_column_id) {
-        await this.createXLookupParentColIndex(source, colBody, column.id, ncMeta, sqlMgr);
+        await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
         
-        const pColumnOld = await Column.get({ colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
+        const pColumnOld = await Column.get(context, { colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
         if(pColumnOld.meta && pColumnOld.meta.xlk_refer) {
           var i = pColumnOld.meta.xlk_refer.indexOf(column.id);
           if (i !== -1) {
             pColumnOld.meta.xlk_refer.splice(i, 1);
-            await Column.updateMeta({
+            await Column.updateMeta(context, {
               colId: (column.colOptions as XLookupType).fk_parent_column_id,
               meta: {'xlk_refer': pColumnOld.meta.xlk_refer},
             });
           }
           if(pColumnOld.meta.xlk_refer.length === 0) {
-            await this.deleteXLookupParentColIndex(source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
+            await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
           }
         }
       }
       
-      await Column.update(column.id, colBody);
+      await Column.update(context, column.id, colBody);
 
     } else if (
       UITypes.Rollup === column.uidt &&
