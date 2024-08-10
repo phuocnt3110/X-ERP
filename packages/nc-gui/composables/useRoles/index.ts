@@ -39,9 +39,14 @@ export const useRolesShared = createSharedComposable(() => {
 
     baseRoles = extractRolesObj(baseRoles)
 
+    let tableRoles = user.value?.table_roles ?? {}
+
+    tableRoles = extractRolesObj(tableRoles)
+
     return {
       ...orgRoles,
       ...baseRoles,
+      ...tableRoles,
     }
   })
 
@@ -64,6 +69,15 @@ export const useRolesShared = createSharedComposable(() => {
 
     return baseRoles
   })
+
+  const tableRoles = computed<RolesObj | null>(() => {
+    let tableRoles = user.value?.table_roles ?? {}
+
+    tableRoles = extractRolesObj(tableRoles)
+
+    return tableRoles
+  })
+
 
   const workspaceRoles = computed<RolesObj | null>(() => {
     return null
@@ -128,6 +142,19 @@ export const useRolesShared = createSharedComposable(() => {
     }
   }
 
+  async function loadTableRoles(
+    tableId?: string
+  ) {
+    const res = await api.auth.me({ table_id: tableId })
+
+      user.value = {
+        ...user.value,
+        roles: res.roles,
+        table_roles: res.table_roles,
+        display_name: res.display_name,
+      } as typeof User
+  }
+
   const isUIAllowed = (
     permission: Permission | string,
     args: {
@@ -172,7 +199,7 @@ export const useRolesShared = createSharedComposable(() => {
     )
   }
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
+  return { allRoles, orgRoles, workspaceRoles, baseRoles, tableRoles, loadRoles, loadTableRoles, isUIAllowed }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>

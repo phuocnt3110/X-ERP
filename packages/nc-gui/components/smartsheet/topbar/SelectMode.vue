@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, tableRoles } = useRoles()
 
 const { onViewsTabChange } = useViewsStore()
 
@@ -32,7 +32,7 @@ const onClickDetails = () => {
       v-e="['c:project:mode:details']"
       class="tab"
       :class="{
-        active: openedViewsTab !== 'view',
+        active: openedViewsTab === 'field' || openedViewsTab === 'relation',
       }"
       @click="onClickDetails"
     >
@@ -45,6 +45,24 @@ const onClickDetails = () => {
         }"
       />
       <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
+    </div>
+    <div v-if="isUIAllowed('newUser', { roles: baseRoles }) || isUIAllowed('newTableUser', { roles: tableRoles })"
+      v-e="['c:project:mode:members']"
+      class="tab"
+      :class="{
+        active: openedViewsTab === 'members',
+      }"
+      @click="onViewsTabChange('members')"
+    >
+      <GeneralIcon
+        icon="users"
+        class="tab-icon"
+        :class="{}"
+        :style="{
+          fontWeight: 500,
+        }"
+      />
+      <div class="tab-title nc-tab">{{ $t('labels.members') }}</div>
     </div>
   </div>
 </template>

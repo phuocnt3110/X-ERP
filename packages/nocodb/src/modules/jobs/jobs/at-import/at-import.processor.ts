@@ -2416,6 +2416,7 @@ export class AtImportProcessor {
       // clear all tables if debug mode
       if (debugMode) {
         const tables = await this.tablesService.getAccessibleTables(context, {
+          userId: null,
           baseId: syncDB.baseId,
           sourceId: syncDB.sourceId,
           roles: { ...userRole, owner: true },
@@ -2511,6 +2512,7 @@ export class AtImportProcessor {
           ncTblList['list'] = await this.tablesService.getAccessibleTables(
             context,
             {
+              userId: null,
               baseId: ncCreatedProjectSchema.id,
               sourceId: syncDB.sourceId,
               roles: { ...userRole, owner: true },

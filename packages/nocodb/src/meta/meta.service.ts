@@ -135,11 +135,13 @@ export class MetaService {
       if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
+    console.log('>>>1', insertObj)
     await this.knexConnection(target).insert({
       ...insertObj,
       created_at: this.now(),
       updated_at: this.now(),
     });
+    console.log('>>>2')
     return insertObj;
   }
 

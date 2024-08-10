@@ -29,7 +29,7 @@ export class ColumnsController {
     '/api/v2/meta/tables/:tableId/columns/',
   ])
   @HttpCode(200)
-  @Acl('columnAdd')
+  @Acl('columnAdd', {scope: 'table'})
   async columnAdd(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
@@ -48,7 +48,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
-  @Acl('columnUpdate')
+  @Acl('columnUpdate', {scope: 'table'})
   async columnUpdate(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -67,7 +67,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
-  @Acl('columnDelete')
+  @Acl('columnDelete', {scope: 'table'})
   async columnDelete(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -81,7 +81,7 @@ export class ColumnsController {
   }
 
   @Get(['/api/v1/db/meta/columns/:columnId', '/api/v2/meta/columns/:columnId'])
-  @Acl('columnGet')
+  @Acl('columnGet', {scope: 'table'})
   async columnGet(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,

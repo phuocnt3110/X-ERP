@@ -30,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const userWithRoles = await User.getWithRoles(req.context, user.id, {
       user,
       baseId: req.ncBaseId,
+      tableId: req.ncTableId,
     });
 
     return userWithRoles && { ...userWithRoles, isAuthorized: true };

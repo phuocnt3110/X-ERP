@@ -12,6 +12,8 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
+  const tablesUser = ref<Map<string, User[]>>(new Map())
+
   const baseTables = ref<Map<string, SidebarTableNode[]>>(new Map())
   const basesStore = useBases()
   // const baseStore = useBase()
@@ -78,6 +80,47 @@ export const useTablesStore = defineStore('tablesStore', () => {
     })
 
     baseTables.value.set(baseId, tables.list || [])
+  }
+
+  async function getTableUsers({ tableId, searchText, force = false }: { tableId: string; searchText?: string; force?: boolean }) {
+    if (!force && tablesUser.value.has(tableId)) {
+      const users = tablesUser.value.get(tableId)
+      return {
+        users,
+        totalRows: users?.length ?? 0,
+      }
+    }
+
+    const response: any = await api.auth.tableUserList(tableId, {
+      query: {
+        query: searchText,
+      },
+    } as RequestParams)
+
+    const totalRows = response.users.pageInfo.totalRows ?? 0
+
+    tablesUser.value.set(tableId, response.users.list)
+
+    return {
+      users: response.users.list,
+      totalRows,
+    }
+  }
+
+  const createTableUser = async (tableId: string, user: User) => {
+    await api.auth.tableUserAdd(tableId, user as TableUserReqType)
+  }
+
+  const updateTableUser = async (tableId: string, user: User) => {
+    await api.auth.tableUserUpdate(tableId, user.id, user as TableUserReqType)
+  }
+
+  const clearTableUser = () => {
+    tablesUser.value.clear()
+  }
+
+  const removeTableUser = async (tableId: string, user: User) => {
+    await api.auth.tableUserRemove(tableId, user.id)
   }
 
   const addTable = (baseId: string, table: TableType) => {
@@ -230,6 +273,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   return {
     baseTables,
+    getTableUsers,
+    createTableUser,
+    updateTableUser,
+    removeTableUser,
     loadProjectTables,
     addTable,
     activeTable,

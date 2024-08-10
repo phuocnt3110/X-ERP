@@ -905,7 +905,16 @@ watch(
   meta,
   async (newMeta) => {
     if (newMeta?.id) {
-      columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+      try{
+        columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+      } catch (error) {
+        // if the request is canceled, then do nothing
+        if (error.code === 'ERR_CANCELED') {
+          return
+        }
+        console.error(error)
+        return message.error(await extractSdkResponseErrorMsg(error))
+      }
     }
   },
   { deep: true },
@@ -915,7 +924,16 @@ onMounted(async () => {
   await until(() => !!(meta.value?.id && meta.value?.columns)).toBeTruthy()
 
   if (meta.value && meta.value.id) {
-    columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
+    try {
+      columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
+    } catch (error) {
+      // if the request is canceled, then do nothing
+      if (error.code === 'ERR_CANCELED') {
+        return
+      }
+      console.error(error)
+      return message.error(await extractSdkResponseErrorMsg(error))
+    }
   }
 
   metaToLocal()

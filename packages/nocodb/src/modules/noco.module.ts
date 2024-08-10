@@ -55,6 +55,7 @@ import { SharedBasesController } from '~/controllers/shared-bases.controller';
 import { SortsController } from '~/controllers/sorts.controller';
 import { SyncController } from '~/controllers/sync.controller';
 import { TablesController } from '~/controllers/tables.controller';
+import { TableUsersController } from '~/controllers/table-users.controller';
 import { UtilsController } from '~/controllers/utils.controller';
 import { ViewColumnsController } from '~/controllers/view-columns.controller';
 import { ViewsController } from '~/controllers/views.controller';
@@ -88,6 +89,7 @@ import { SharedBasesService } from '~/services/shared-bases.service';
 import { SortsService } from '~/services/sorts.service';
 import { SyncService } from '~/services/sync.service';
 import { TablesService } from '~/services/tables.service';
+import { TableUsersService } from '~/services/table-users/table-users.service';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -176,6 +178,7 @@ export const nocoModuleMetadata = {
           ViewColumnsController,
           UtilsController,
           TablesController,
+          TableUsersController,
           SyncController,
           SortsController,
           SharedBasesController,
@@ -246,6 +249,7 @@ export const nocoModuleMetadata = {
     ViewColumnsService,
     UtilsService,
     TablesService,
+    TableUsersService,
     SyncService,
     SortsService,
     SharedBasesService,

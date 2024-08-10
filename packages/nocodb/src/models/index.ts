@@ -28,6 +28,7 @@ export { default as ModelRoleVisibility } from './ModelRoleVisibility';
 export { default as Plugin } from './Plugin';
 export { default as Base } from './Base';
 export { default as BaseUser } from './BaseUser';
+export { default as TableUser } from './TableUser';
 export { default as QrCodeColumn } from './QrCodeColumn';
 export { default as RollupColumn } from './RollupColumn';
 export { default as SelectOption } from './SelectOption';

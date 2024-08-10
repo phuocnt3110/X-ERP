@@ -29,7 +29,7 @@ export class ViewsController {
     '/api/v1/db/meta/tables/:tableId/views',
     '/api/v2/meta/tables/:tableId/views',
   ])
-  @Acl('viewList')
+  @Acl('viewList', {scope: 'table'})
   async viewList(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
@@ -44,7 +44,7 @@ export class ViewsController {
   }
 
   @Patch(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
-  @Acl('viewUpdate')
+  @Acl('viewUpdate', {scope: 'table'})
   async viewUpdate(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -61,7 +61,7 @@ export class ViewsController {
   }
 
   @Delete(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])
-  @Acl('viewDelete')
+  @Acl('viewDelete', {scope: 'table'})
   async viewDelete(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -80,7 +80,7 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/show-all',
   ])
   @HttpCode(200)
-  @Acl('showAllColumns')
+  @Acl('showAllColumns', {scope: 'table'})
   async showAllColumns(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -96,7 +96,7 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/hide-all',
   ])
   @HttpCode(200)
-  @Acl('hideAllColumns')
+  @Acl('hideAllColumns', {scope: 'table'})
   async hideAllColumns(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -113,7 +113,7 @@ export class ViewsController {
     '/api/v2/meta/views/:viewId/share',
   ])
   @HttpCode(200)
-  @Acl('shareView')
+  @Acl('shareView', {scope: 'table'})
   async shareView(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -130,7 +130,7 @@ export class ViewsController {
     '/api/v1/db/meta/tables/:tableId/share',
     '/api/v2/meta/tables/:tableId/share',
   ])
-  @Acl('shareViewList')
+  @Acl('shareViewList', {scope: 'table'})
   async shareViewList(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
@@ -146,7 +146,7 @@ export class ViewsController {
     '/api/v1/db/meta/views/:viewId/share',
     '/api/v2/meta/views/:viewId/share',
   ])
-  @Acl('shareViewUpdate')
+  @Acl('shareViewUpdate', {scope: 'table'})
   async shareViewUpdate(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
@@ -165,7 +165,7 @@ export class ViewsController {
     '/api/v1/db/meta/views/:viewId/share',
     '/api/v2/meta/views/:viewId/share',
   ])
-  @Acl('shareViewDelete')
+  @Acl('shareViewDelete', {scope: 'table'})
   async shareViewDelete(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,

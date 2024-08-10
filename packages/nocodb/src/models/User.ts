@@ -11,7 +11,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import { Base, BaseUser, UserRefreshToken } from '~/models';
+import { Base, BaseUser, TableUser, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
@@ -298,10 +298,12 @@ export default class User implements UserType {
     args: {
       user?: User;
       baseId?: string;
+      tableId?: string;
       orgId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
+    console.log('>>>getWithRoles', args.tableId)
     const user = args.user ?? (await this.get(userId, ncMeta));
 
     if (!user) NcError.userNotFound(userId);
@@ -323,10 +325,28 @@ export default class User implements UserType {
       }
     });
 
+    const tableRoles = await new Promise((resolve) => {
+      if (args.tableId) {
+        TableUser.get(args.tableId, user.id).then(async (tableUser) => {
+          const roles = tableUser?.roles;
+          // + (user.roles ? `,${user.roles}` : '');
+          if (roles) {
+            resolve(extractRolesObj(roles));
+          } else {
+            resolve(null);
+          }
+          // todo: cache
+        });
+      } else {
+        resolve(null);
+      }
+    });
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
+      table_roles: tableRoles ? tableRoles : null,
     } as any;
   }
 
