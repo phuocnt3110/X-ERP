@@ -31,9 +31,10 @@ import {
   SyncSource,
   View,
 } from '~/models';
+import Noco from '~/Noco';
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
-import { RootScopes } from '~/utils/globals';
+import { RootScopes, MetaTable } from '~/utils/globals';
 import { sourceRestrictions } from '~/utils/acl';
 import { Source } from '~/models';
 
@@ -448,7 +449,87 @@ export class AclMiddleware implements NestInterceptor {
       context.getHandler(),
     );
 
+    const subScope = this.reflector.get<string>('subScope', context.getHandler());
+
     const req = context.switchToHttp().getRequest();
+
+    // For column authorization
+    if (subScope === 'column' && (req.method == 'PATCH' || req.method === 'DELETE')) {
+      const baseRoles = getUserRoleForScope(req.user, 'base')
+      const tableRoles = getUserRoleForScope(req.user, 'table')
+
+      if (baseRoles?.[ProjectRoles.OWNER] || tableRoles?.[TableRoles.OWNER]) {
+        return next.handle().pipe(
+          map((data) => {
+            return data;
+          }),
+        );
+      }
+
+      let column = undefined;
+
+      if (req.params.columnId) {
+        column = await Column.get(req.context, { colId: req.params.columnId });
+      } else if (req.params.tableName && req.params.viewName) {
+        const model = await Model.getByAliasOrId(req.context, {
+          base_id: req.context.base_id,
+          aliasOrId: req.params.tableName,
+        });
+      
+        if (!model) NcError.tableNotFound(req.params.tableName);
+
+        // const view =
+        //   (await View.getByTitleOrId(req.context, {
+        //     titleOrId: req.params.viewName,
+        //     fk_model_id: model.id,
+        //   }));
+        // if (!view) NcError.viewNotFound(req.params.viewName);
+
+        // await view.getColumns(req.context);
+
+        await model.getColumns(req.context);
+
+        const fieldName = Object.keys(req.body)[0]
+
+        for (const col of model.columns) {
+          if (col.column_name === fieldName) {
+            column = col
+            break
+          }
+        }
+
+        if (!column) NcError.fieldNotFound(fieldName);
+      }
+
+      if (!column) {
+        NcError.fieldNotFound(req.params.columnId);
+      }
+
+      if (column.protect_type === 'owner') {
+        NcError.forbidden('Only base onwer is allowed')
+      } else if (column.protect_type === 'custom') {
+        const columnUser = await Noco.ncMeta.metaList2(
+          req.context.workspace_id,
+          req.context.base_id,
+          MetaTable.COLUMN_USERS,
+          {
+            condition: {
+              fk_user_id: req.user.id,
+              fk_column_id: column.id,
+            }
+          },
+        );
+        if (columnUser.length > 0) {
+          return next.handle().pipe(
+            map((data) => {
+              return data;
+            }),
+          );
+        }
+
+        NcError.forbidden("You don't have permission to access this resource")
+      }
+    }
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
@@ -599,11 +680,13 @@ export const Acl =
     permissionName: string,
     {
       scope = 'base',
+      subScope,
       allowedRoles,
       blockApiTokenAccess,
       extendedScope,
     }: {
       scope?: string;
+      subScope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
       extendedScope?: string;
@@ -620,5 +703,7 @@ export const Acl =
       key,
       descriptor,
     );
+    SetMetadata('subScope', subScope)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };
+  

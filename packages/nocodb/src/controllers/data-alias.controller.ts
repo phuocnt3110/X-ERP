@@ -151,6 +151,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
+  @Acl('dataUpdate', {scope: 'table', subScope: 'column'})
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -175,6 +176,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
+  @Acl('dataDelete', {scope: 'table', subScope: 'column'})
   async dataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

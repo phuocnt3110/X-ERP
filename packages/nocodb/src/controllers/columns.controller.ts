@@ -48,6 +48,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
+  @Acl('columnUpdate', {scope: 'table', subScope: 'column'})
   async columnUpdate(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -66,6 +67,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
+  @Acl('columnDelete', {scope: 'table', subScope: 'column'})
   async columnDelete(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
