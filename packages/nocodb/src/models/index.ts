@@ -3,6 +3,7 @@ export { default as Audit } from './Audit';
 export { default as BarcodeColumn } from './BarcodeColumn';
 export { default as Source } from './Source';
 export { default as Column } from './Column';
+export { default as ColumnUser } from './ColumnUser';
 export { default as CalendarView } from './CalendarView';
 export { default as CalendarViewColumn } from './CalendarViewColumn';
 export { default as CalendarRange } from './CalendarRange';

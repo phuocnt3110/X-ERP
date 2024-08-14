@@ -345,6 +345,7 @@ export class TablesService {
   ) {
     const table = await Model.getWithInfo(context, {
       id: param.tableId,
+      user: param.user
     });
 
     if (!table) {

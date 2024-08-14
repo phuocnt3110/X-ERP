@@ -3,11 +3,15 @@ import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
-const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
+const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean, protectType: string; canEdit: boolean }>()
 
 const emit = defineEmits(['edit', 'addColumn', 'update:isOpen'])
 
 const virtual = toRef(props, 'virtual')
+
+const protectType = toRef(props, 'protectType')
+
+const canEdit = toRef(props, 'canEdit')
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
@@ -37,13 +41,15 @@ const { getMeta } = useMetas()
 
 const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
+const showProtectColumnModal = ref(false)
+
 const showDeleteColumnModal = ref(false)
 
 const { gridViewCols } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
-const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+const { baseRoles, isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -313,6 +319,11 @@ const onEditPress = () => {
   emit('edit')
 }
 
+const onProtectColumnPress = () => {
+  isOpen.value = false
+  showProtectColumnModal.value = true
+}
+
 const onInsertBefore = () => {
   isOpen.value = false
   addColumn(true)
@@ -420,7 +431,7 @@ const changeTitleField = () => {
       >
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem
-            v-if="isUIAllowed('fieldAlter')"
+            v-if="(protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit)"
             :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated.length"
             :title="linksAssociated.length ? 'Field is associated with a link column' : undefined"
             @click="onEditPress"
@@ -433,7 +444,7 @@ const changeTitleField = () => {
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
         <NcMenuItem
-          v-if="isUIAllowed('fieldAlter') && !!column?.pv"
+          v-if="(protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit) && !!column?.pv"
           title="Select a new field as display value"
           @click="changeTitleField"
         >
@@ -461,8 +472,8 @@ const changeTitleField = () => {
             </div>
           </NcMenuItem>
         </GeneralSourceRestrictionTooltip>
-        <a-divider v-if="isUIAllowed('fieldAlter') && !column?.pv" class="!my-0" />
-        <NcMenuItem v-if="!column?.pv" @click="hideOrShowField">
+        <a-divider v-if="!column?.pv && canEdit" class="!my-0" />
+        <NcMenuItem v-if="!column?.pv && (protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit)" @click="hideField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
             <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="text-gray-500 !w-4 !h-4" />
@@ -485,7 +496,15 @@ const changeTitleField = () => {
         </NcMenuItem>
 
         <template v-if="!isExpandedForm">
-          <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
+          <NcMenuItem v-if="(isUIAllowed('protectColumnProjectOwner') || isUIAllowed('protectColumnTableCreator')) && ((protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit))" @click="onProtectColumnPress">
+            <div class="nc-column-protect nc-header-menu-item">
+              <component :is="iconMap.lock" class="text-gray-700" />
+              <!-- Protect column -->
+              {{ $t('activity.protectColumn') }}
+            </div>
+          </NcMenuItem>
+
+        <a-divider v-if="(!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO) && canEdit" class="!my-0" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
             <NcMenuItem @click="sortByColumn('asc')">
@@ -588,10 +607,10 @@ const changeTitleField = () => {
             </div>
           </NcMenuItem>
         </template>
-        <a-divider v-if="!column?.pv" class="!my-0" />
+        <a-divider v-if="!column?.pv && (protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit)" class="!my-0" />
         <GeneralSourceRestrictionTooltip message="Field cannot be deleted." :enabled="!isColumnUpdateAllowed">
           <NcMenuItem
-            v-if="!column?.pv && isUIAllowed('fieldDelete')"
+            v-if="!column?.pv && (protectType === 'default' && isUIAllowed('fieldEdit')) || (protectType !== 'default' && canEdit)"
             :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated.length"
             class="!hover:bg-red-50"
             :title="linksAssociated ? 'Field is associated with a link column' : undefined"
@@ -610,7 +629,10 @@ const changeTitleField = () => {
       </NcMenu>
     </template>
   </a-dropdown>
-  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+    <SmartsheetHeaderProtectColumnDlg
+    v-if="showProtectColumnModal"
+    @close="showProtectColumnModal = false" />
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal"/>
   <DlgColumnDuplicate
     v-if="column"
     ref="duplicateDialogRef"

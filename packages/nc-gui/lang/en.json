@@ -1019,6 +1019,11 @@
       "enable": "Anyone with the link",
       "link": "Shared base link"
     },
+    "protectColumnType": {
+      "default": "Default",
+      "owner": "Only you and table owner can edit",
+      "custom": "Custom"
+    },
     "invite": "Invite",
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
@@ -1047,6 +1052,9 @@
     "renameLayout": "Layout Rename",
     "deleteTable": "Delete Table",
     "addField": "Add new field to this table",
+    "protectColumn": "Protect column",
+    "protectColumnDlg": "Column editing permissions",
+    "protectColumnCustomLabel": "Choose who can edit",
     "setDisplay": "Set as display value",
     "addRow": "Add new record",
     "saveRow": "Save record",
@@ -1403,6 +1411,7 @@
       }
     },
     "info": {
+      "protectColumnNotAllowEdit": "You don't have permission to edit data of this column",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",

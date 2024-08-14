@@ -363,7 +363,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+  if (col.protect_type === 'default') {
+    if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+      return
+    }
+  } else if (!col.can_edit) {
     return
   }
 
@@ -2207,11 +2211,11 @@ onKeyStroke('ArrowDown', onDown)
                             v-model="row.row[columnObj.title]"
                             :column="columnObj"
                             :edit-enabled="
-                              !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                              ((columnObj.protect_type === 'default' && !!hasEditPermission) || columnObj.protect_type !== 'default') && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
                             "
                             :row-index="rowIndex"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                            :read-only="!hasEditPermission"
+                            :read-only="columnObj.protect_type === 'default' && !hasEditPermission"
                             @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, columnObj.title, state)"
                             @navigate="onNavigate"

@@ -303,7 +303,6 @@ export default class User implements UserType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    console.log('>>>getWithRoles', args.tableId)
     const user = args.user ?? (await this.get(userId, ncMeta));
 
     if (!user) NcError.userNotFound(userId);

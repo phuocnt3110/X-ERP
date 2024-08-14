@@ -185,8 +185,10 @@ const onClick = (e: Event) => {
     <template v-if="!hideMenu">
       <div v-if="!isExpandedForm" class="flex-1" />
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('fieldEdit')"
+        v-if="!isForm && !isExpandedForm && (isUIAllowed('fieldEdit') || column.can_edit)"
         v-model:is-open="isDropDownOpen"
+        :protect-type="column.protect_type"
+        :can-edit="column.can_edit"
         :is-hidden-col="isHiddenCol"
         @add-column="addField"
         @edit="openHeaderMenu"

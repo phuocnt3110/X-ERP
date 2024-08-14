@@ -91,6 +91,9 @@ export default class Column<T = any> implements ColumnType {
   public validate: any;
   public meta: any;
 
+  public protect_type: string;
+  public can_edit?: boolean;
+
   constructor(data: Partial<ColumnType | Column>) {
     Object.assign(this, data);
   }
@@ -153,6 +156,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'meta',
       'virtual',
+      'protect_type',
     ]);
 
     if (!insertObj.column_name) {
@@ -1207,6 +1211,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
+      'protect_type',
     ]);
 
     if (column.validate) {

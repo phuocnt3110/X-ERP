@@ -40,6 +40,7 @@ export enum MetaTable {
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_base_users_v2',
   TABLE_USERS = 'nc_table_users_v2',
+  COLUMN_USERS = 'nc_col_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',

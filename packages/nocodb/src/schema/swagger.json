@@ -5031,6 +5031,79 @@
         ]
       }
     },
+    "api/v2/meta/column/:columnId/user": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Column User",
+        "operationId": "protect-column-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/col"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectColumnReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Column"
+        ],
+        "description": "Update column user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "Update Column User",
+        "operationId": "column-user-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "$ref": "#/components/responses/ColumnUserList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Source"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
@@ -19954,7 +20027,8 @@
             "unique": 0,
             "updated_at": "2023-03-02 13:14:16",
             "validate": null,
-            "virtual": null
+            "virtual": null,
+            "protect_type": "public"
           }
         ],
         "title": "Column Model",
@@ -20204,6 +20278,11 @@
           "visible": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
+          },
+          "protect_type": {
+            "description": "Column protect type",
+            "example": "public",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -23456,6 +23535,138 @@
         },
         "x-stoplight": {
           "id": "rmmtwpsofeqo5"
+        }
+      },
+      "ColumnUserReq": {
+        "description": "Model for Column User Request",
+        "examples": [
+          {
+            "fk_column_id": "vcsfdskđffdjk",
+            "fk_user_id": "bvbdfjmndsvsd"
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "description": "The ID of the Column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "description": "The ID of User can edit column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fk_column_id",
+          "fk_user_id"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ColumnUser": {
+        "description": "Model for Column User Request",
+        "examples": [
+          {
+            "fk_column_id": "vcsfdskđffdjk",
+            "fk_user_id": "bvbdfjmndsvsd"
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "description": "The ID of the Column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "description": "The ID of User can edit column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "email": {
+            "description": "User email",
+            "example": "test@gmail.com",
+            "type": "string"
+          },
+          "display_name": {
+            "description": "User name",
+            "example": "abc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fk_column_id",
+          "fk_user_id",
+          "email",
+          "display_name"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ProtectColumnReq": {
+        "description": "Model for Protect Column Request",
+        "examples": [
+          {
+            "protect_type": "public",
+            "user_list": [
+              "bvbdfjmndsvsd"
+            ]
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "protect_type": {
+            "description": "Column protect type (public, owner, custom",
+            "type": "string"
+          },
+          "user_list": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "protect_type"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ColumnUserList": {
+        "description": "Model for Column User List",
+        "examples": [
+          {
+            "user_list": [
+              {
+                "fk_column_id": "vcsfdskđffdjk",
+                "fk_user_id": "bvbdfjmndsvsd"
+              }
+            ]
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "user_list": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnUser"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "user_list"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
         }
       },
       "Map": {
@@ -27832,6 +28043,28 @@
                     "pageSize": 10,
                     "totalRows": 1
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ColumnUserList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ColumnUserList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "user_list": [
+                    {
+                      "email": "user@example.com",
+                      "id": "us_8kugj628ebjngs"
+                    }
+                  ]
                 }
               }
             }

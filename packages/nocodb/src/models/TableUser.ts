@@ -79,8 +79,6 @@ export default class TableUser {
       'roles',
     ]);
 
-    console.log('>>>insert')
-
     const { fk_model_id, fk_user_id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,

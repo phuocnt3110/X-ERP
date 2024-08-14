@@ -60,6 +60,7 @@ const rolePermissions = {
   [ProjectRoles.OWNER]: {
     include: {
       baseDelete: true,
+      protectColumnProjectOwner: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -134,14 +135,13 @@ const rolePermissions = {
       tableMiscSettings: true,
       csvImport: true,
       fieldEdit: true,
-      fieldAlter: true,
-      fieldDelete: true,
       fieldAdd: true,
       columnAdd: true,
       columnUpdate: true,
       columnDelete: true,
       columnSetAsPrimary: true,
       columnBulk: true,
+      protectColumnTableCreator: true,
     },
   },
   [TableRoles.EDITOR]: {

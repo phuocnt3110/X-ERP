@@ -22,6 +22,7 @@ import type {
   LinkToAnotherRecordType,
   XLookupType,
   UserType,
+  ProtectColumnReqType,
 } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
@@ -31,6 +32,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
 import {
   BaseUser,
+  ColumnUser,
   CalendarRange,
   Column,
   FormulaColumn,
@@ -2051,6 +2053,7 @@ export class ColumnsService {
           await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
+            protect_type: 'default',
           });
         }
         break;
@@ -3644,5 +3647,32 @@ export class ColumnsService {
     _columnBody: ColumnReqType,
   ) {
     // placeholder for post column update hook
+  }
+
+  async columnUserUpdate(context: NcContext, param: {
+    req?: any;
+    columnId: string;
+    protectColumn: ProtectColumnReqType;
+    cookie?: any;
+    user: UserType;
+    reuse?: ReusableParams;
+  },
+  ncMeta = this.metaService) {
+    if (param.protectColumn.protect_type == 'custom' && param.protectColumn.user_list == undefined) {
+      NcError.badRequest('Missing allowed edit user list');
+    }
+
+    ColumnUser.updateProtectColumn(context, param.columnId, param.protectColumn);
+  }
+
+  async columnUserGet(context: NcContext, param: {
+    req?: any;
+    columnId: string;
+    cookie?: any;
+    user: UserType;
+    reuse?: ReusableParams;
+  },
+  ncMeta = this.metaService) {
+    return ColumnUser.getUsersList(context, param.columnId);
   }
 }
