@@ -400,7 +400,7 @@ export default class TableUser {
 
       if(roles[OrgUserRoles.SUPER_ADMIN]) {
         qb.select(
-          ncMeta.knex.raw(`CAST('${TableRoles.OWNER}' as text) as table_roles`)
+          ncMeta.knex.raw(`'${TableRoles.OWNER}' as table_roles`)
         )
       } else {
         qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
@@ -422,7 +422,7 @@ export default class TableUser {
 
       if(roles[OrgUserRoles.SUPER_ADMIN]) {
         qb.select(
-          ncMeta.knex.raw(`CAST('${TableRoles.OWNER}' as text) as table_roles`)
+          ncMeta.knex.raw(`'${TableRoles.OWNER}' as table_roles`)
         )
       } else {
         qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
