@@ -470,9 +470,9 @@ export default class Model implements TableType {
           if (c.protect_type == 'default') {
             c.can_edit = false
           } else if (c.protect_type == 'owner') {
-            c.can_edit = user?.base_roles?.owner ? true: false
+            c.can_edit = user?.base_roles?.owner || user?.table_roles['table-level-owner'] || allowColumns.includes(c.id) ? true: false
           } else if (c.protect_type == 'custom') {
-            c.can_edit = user?.base_roles?.owner || allowColumns.includes(c.id)
+            c.can_edit = user?.base_roles?.owner || user?.table_roles['table-level-owner'] || allowColumns.includes(c.id)
           }
         }
 

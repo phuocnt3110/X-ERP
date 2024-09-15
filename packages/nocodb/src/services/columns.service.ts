@@ -3662,7 +3662,7 @@ export class ColumnsService {
       NcError.badRequest('Missing allowed edit user list');
     }
 
-    ColumnUser.updateProtectColumn(context, param.columnId, param.protectColumn);
+    ColumnUser.updateProtectColumn(context, param.columnId, param.protectColumn, param.user);
   }
 
   async columnUserGet(context: NcContext, param: {
