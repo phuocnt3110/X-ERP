@@ -162,7 +162,7 @@ export default class TableUser {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & TableUser)[]> {
-    const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [table_id]);
+    const cachedList = await NocoCache.getList(CacheScope.TABLE_USER, [table_id]);
     let { list: tableUsers } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -406,7 +406,7 @@ export default class TableUser {
         qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
       }
 
-      if(!roles[OrgUserRoles.SUPER_ADMIN] && !roles[ProjectRoles.OWNER] && !roles[ProjectRoles.EDITOR] && !roles[ProjectRoles.VIEWER]) {
+      if(!roles[OrgUserRoles.SUPER_ADMIN] && !roles[ProjectRoles.OWNER] && !roles[ProjectRoles.CREATOR]) {
         qb.where(
           `${MetaTable.TABLE_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId]),
@@ -426,13 +426,6 @@ export default class TableUser {
         )
       } else {
         qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
-      }
-
-      if(!roles[OrgUserRoles.SUPER_ADMIN] && !roles[ProjectRoles.OWNER] && !roles[ProjectRoles.EDITOR] && !roles[ProjectRoles.VIEWER]) {
-        qb.where(
-          `${MetaTable.TABLE_USERS}.fk_user_id`,
-          ncMeta.knex.raw('?', [userId]),
-        )
       }
 
     // filter shared with me tables

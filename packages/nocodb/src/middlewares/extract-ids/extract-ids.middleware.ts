@@ -505,9 +505,7 @@ export class AclMiddleware implements NestInterceptor {
         NcError.fieldNotFound(req.params.columnId);
       }
 
-      if (column.protect_type === 'owner') {
-        NcError.forbidden('Only base onwer is allowed')
-      } else if (column.protect_type === 'custom') {
+      if (column.protect_type === 'owner' || column.protect_type === 'custom') {
         const columnUser = await Noco.ncMeta.metaList2(
           req.context.workspace_id,
           req.context.base_id,

@@ -192,6 +192,8 @@ export default class Column<T = any> implements ColumnType {
       insertObj.source_id = model.source_id;
     }
 
+    insertObj.protect_type = 'default'
+
     if (!column.uidt) throw new Error('UI Datatype not found');
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -1587,6 +1589,8 @@ export default class Column<T = any> implements ColumnType {
       if (column.meta && typeof column.meta === 'object') {
         insertObj.meta = JSON.stringify(column.meta);
       }
+
+      insertObj.protect_type = 'default'
 
       if (column.validate) {
         if (typeof column.validate === 'string')

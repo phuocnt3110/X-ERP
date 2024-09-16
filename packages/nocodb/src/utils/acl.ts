@@ -5,6 +5,7 @@ const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   base: [
     ProjectRoles.VIEWER,
+    ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
     ProjectRoles.CREATOR,
     ProjectRoles.OWNER,
@@ -266,6 +267,13 @@ const rolePermissions:
       jobList: true,
       commentsCount: true,
       auditListRow: true,
+    },
+  },
+  [ProjectRoles.COMMENTER]: {
+    include: {
+      commentRow: true,
+      commentUpdate: true,
+      commentDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {

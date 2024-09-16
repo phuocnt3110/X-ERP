@@ -3,7 +3,7 @@ import {
   MetaTable
 } from '~/utils/globals';
 import Noco from '~/Noco';
-import type { ProtectColumnReqType } from 'nocodb-sdk';
+import type { ProtectColumnReqType, UserType } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from 'src/helpers/catchError';
 import { NcContext } from 'src/interface/config';
@@ -24,6 +24,7 @@ export default class ColumnUser {
     context: NcContext,
     columnId: string,
     protectColumn: ProtectColumnReqType,
+    user: UserType,
     ncMeta = Noco.ncMeta,
   ) {
     const column = await Column.get(context, {
@@ -48,13 +49,22 @@ export default class ColumnUser {
       },
     );
 
-    if (protectColumn.protect_type == 'custom') {
-      const insertObj = protectColumn.user_list.map((columnUser) => {
-        return {
+    if (protectColumn.protect_type == 'owner' || protectColumn.protect_type == 'custom') {
+      let insertObj = []
+      
+      if (protectColumn.protect_type == 'owner') {
+        insertObj.push({
           fk_column_id: columnId,
-          fk_user_id: columnUser
-        }
-      });
+          fk_user_id: user.id
+        })
+      } else {
+        insertObj = protectColumn.user_list.map((columnUser) => {
+          return {
+            fk_column_id: columnId,
+            fk_user_id: columnUser
+          }
+        });
+      }
 
       await ncMeta.bulkMetaInsert(
         context.workspace_id,
@@ -74,19 +84,19 @@ export default class ColumnUser {
     }
 
     const qb1 = ncMeta
-    .knex(MetaTable.PROJECT_USERS)
+    .knex(MetaTable.TABLE_USERS)
     .select(
-      `${MetaTable.PROJECT_USERS}.fk_user_id`
+      `${MetaTable.TABLE_USERS}.fk_user_id`
     );
 
     qb1.where(
-      `${MetaTable.PROJECT_USERS}.base_id`,
-      ncMeta.knex.raw(`?`, [ column.base_id ]),
+      `${MetaTable.TABLE_USERS}.fk_model_id`,
+      ncMeta.knex.raw(`?`, [ column.fk_model_id ]),
     ).andWhereNot(
-      `${MetaTable.PROJECT_USERS}.roles`,
-      ncMeta.knex.raw(`?`, [ 'owner' ]),
+      `${MetaTable.TABLE_USERS}.roles`,
+      ncMeta.knex.raw(`?`, [ 'table-level-owner' ]),
     ).andWhereNot(
-      `${MetaTable.PROJECT_USERS}.roles`,
+      `${MetaTable.TABLE_USERS}.roles`,
       ncMeta.knex.raw(`?`, [ 'no-access' ]),
     );
 

@@ -220,6 +220,7 @@ const onClick = (e: Event) => {
       <LazySmartsheetHeaderMenu
         v-if="!isForm && (isUIAllowed('fieldEdit') || column.can_edit)"
         v-model:is-open="isDropDownOpen"
+        :protect-type="column.protect_type"
         :is-hidden-col="isHiddenCol"
         :can-edit="column.can_edit"
         :virtual="true"
