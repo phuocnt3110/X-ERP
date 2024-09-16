@@ -10,7 +10,7 @@ networks:
 # (in lieu of the frontend network in this file) and have the NocoDB container connect to it.
 services: 
   certbot: 
-    command: "certonly --webroot --webroot-path=/var/www/html --email user@example.domain --agree-tos --no-eff-email -d example.domain,www.example.domain,nocodb.example.domain"
+    command: "certonly --webroot --webroot-path=/var/www/html --email user@noco-erp.com --agree-tos --no-eff-email -d noco-erp.com,www.noco-erp.com,nocodb.noco-erp.com"
     container_name: certbot
     depends_on: 
       - reverse_proxy
@@ -63,4 +63,4 @@ services:
     volumes: 
       - "./certbot:/etc/letsencrypt:ro"             # SSL certs
       - "./nginx:/etc/nginx"                        # Nginx config file
-      - "path/to/webroot:/usr/share/nginx/html"     # Mount directory web site files for webroot certificate validation with Certbot
+      - "root/compose:/usr/share/nginx/html"     # Mount directory web site files for webroot certificate validation with Certbot
