@@ -46,7 +46,7 @@ const onClickDetails = () => {
       />
       <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
     </div>
-    <div v-if="isUIAllowed('newUser', { roles: baseRoles }) || isUIAllowed('newTableUser', { roles: tableRoles })"
+    <div v-if="isUIAllowed('newTableUser', { roles: tableRoles })"
       v-e="['c:project:mode:members']"
       class="tab"
       :class="{

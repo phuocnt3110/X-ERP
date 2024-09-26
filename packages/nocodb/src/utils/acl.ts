@@ -208,6 +208,7 @@ const permissionScopes = {
     'columnSetAsPrimary',
     'columnBulk',
     'columnGet',
+    'shareView',
   ],
 };
 
@@ -357,6 +358,7 @@ const rolePermissions:
   [TableRoles.OWNER]: {
     include: {
       tableDelete: true,
+      shareView : true,
     },
   },
   [TableRoles.CREATOR]: {

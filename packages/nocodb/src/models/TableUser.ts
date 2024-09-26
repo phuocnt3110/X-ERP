@@ -406,7 +406,7 @@ export default class TableUser {
         qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
       }
 
-      if(!roles[OrgUserRoles.SUPER_ADMIN] && !roles[ProjectRoles.OWNER] && !roles[ProjectRoles.CREATOR]) {
+      if(!roles[OrgUserRoles.SUPER_ADMIN] && !roles[ProjectRoles.OWNER]) {
         qb.where(
           `${MetaTable.TABLE_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId]),

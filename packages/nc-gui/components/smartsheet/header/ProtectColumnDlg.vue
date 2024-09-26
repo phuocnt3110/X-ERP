@@ -41,6 +41,7 @@ const saveColumnUser = () => {
   }, {})
 
   column.value.protect_type = protectColumnType.value;
+  column.value.can_edit = true;
   
   emit('close')
 }
