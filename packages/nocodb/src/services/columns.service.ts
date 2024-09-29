@@ -1642,12 +1642,18 @@ export class ColumnsService {
             fk_model_id: table.id,
           });
 
-          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-            ProjectMgrv2.getSqlMgr(context, {
-              id: source.base_id,
-            })
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
           );
-          await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+          const driverType = dbDriver.clientType();
+          if (driverType === 'pg') {
+            const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+              ProjectMgrv2.getSqlMgr(context, {
+                id: source.base_id,
+              })
+            );
+            await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+          }
         }
         break;
       case UITypes.Links:
@@ -2225,7 +2231,11 @@ export class ColumnsService {
               meta: {'xlk_refer': pColumn.meta.xlk_refer},
             });
           }
-          if(!pColumn.pk && pColumn.meta.xlk_refer.length === 0) {
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+          if(!pColumn.pk && pColumn.meta.xlk_refer.length === 0 && driverType === 'pg') {
             await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
           }
         }
@@ -3436,7 +3446,13 @@ export class ColumnsService {
       )
       
       if ((column.colOptions as XLookupType).fk_parent_column_id != colBody.fk_parent_column_id) {
-        await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+        const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+          NcConnectionMgrv2.get(source),
+        );
+        const driverType = dbDriver.clientType();
+        if (driverType === 'pg') {
+          await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+        }
         
         const pColumnOld = await Column.get(context, { colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
         if(pColumnOld.meta && pColumnOld.meta.xlk_refer) {
@@ -3448,7 +3464,7 @@ export class ColumnsService {
               meta: {'xlk_refer': pColumnOld.meta.xlk_refer},
             });
           }
-          if(pColumnOld.meta.xlk_refer.length === 0) {
+          if(pColumnOld.meta.xlk_refer.length === 0 && driverType === 'pg') {
             await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
           }
         }

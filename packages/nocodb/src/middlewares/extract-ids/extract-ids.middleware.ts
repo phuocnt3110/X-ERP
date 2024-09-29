@@ -492,7 +492,7 @@ export class AclMiddleware implements NestInterceptor {
         const fieldName = Object.keys(req.body)[0]
 
         for (const col of model.columns) {
-          if (col.column_name === fieldName) {
+          if (col.title === fieldName) {
             column = col
             break
           }

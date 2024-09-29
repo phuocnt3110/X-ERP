@@ -170,7 +170,7 @@ export enum CacheScope {
   HOOK = 'hook',
   PLUGIN = 'plugin',
   BASE_USER = 'baseUser',
-  TABLE_USER = 'baseUser',
+  TABLE_USER = 'tableUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
