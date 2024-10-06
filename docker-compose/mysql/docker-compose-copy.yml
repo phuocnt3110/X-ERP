@@ -8,11 +8,7 @@ services:
       NC_DB: "mysql2://noco_dev_db:3306?u=noco&p=password&d=noco_dev_db"
     image: "phuocnt3110/xerp:lastest"
     ports: 
-<<<<<<< HEAD
-      - "3333:3333"
-=======
-      - "8088:8088"
->>>>>>> ae915c88fe6b4c509747925bbd1f2478becdc775
+      - "3333:8080"
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
@@ -43,7 +39,3 @@ services:
 volumes: 
   db_data: {}
   nc_data: {}
-
-# docker run -d -p 3306:3306 -v /root/nc-db-mysql:/var/lib/mysql -e MYSQL_DATABASE=root_db -e MYSQL_PASSWORD=password -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=noco --name nocodb-mysql mysql:latest
-# docker run -p 8080:8080 -e NC_DB="mysql2://host.docker.internal:3306?u=noco&p=password&d=dev_db" --add-host=host.docker.internal:host-gateway --name nocodb-prod nocodb/nocodb
-

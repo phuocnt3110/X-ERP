@@ -89,7 +89,7 @@ onMounted(() => {
             <NcDivider />
             <a
               v-e="['c:nocodb:discord']"
-              href="https://discord.gg/5RgZmkW"
+              href="http://dev2.noco-erp.com"
               target="_blank"
               class="!underline-transparent"
               rel="noopener noreferrer"
@@ -101,7 +101,7 @@ onMounted(() => {
             </a>
             <a
               v-e="['c:nocodb:reddit']"
-              href="https://www.reddit.com/r/NocoDB"
+              href="http://dev2.noco-erp.com"
               target="_blank"
               class="!underline-transparent"
               rel="noopener noreferrer"
@@ -113,7 +113,7 @@ onMounted(() => {
             </a>
             <a
               v-e="['c:nocodb:twitter']"
-              href="https://twitter.com/nocodb"
+              href="http://dev2.noco-erp.com"
               target="_blank"
               class="!underline-transparent"
               rel="noopener noreferrer"
@@ -152,7 +152,7 @@ onMounted(() => {
 
               <a
                 v-e="['c:nocodb:forum-open']"
-                href="https://community.nocodb.com"
+                href="http://dev2.noco-erp.com"
                 target="_blank"
                 class="!underline-transparent"
                 rel="noopener"
@@ -165,7 +165,7 @@ onMounted(() => {
 
               <a
                 v-e="['c:nocodb:docs-open']"
-                href="https://docs.nocodb.com"
+                href="http://dev2.noco-erp.com"
                 target="_blank"
                 class="!underline-transparent"
                 rel="noopener"

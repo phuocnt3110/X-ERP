@@ -49,21 +49,21 @@ export default class TableUser {
 
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
-        `${CacheScope.BASE_USER}:${fk}:list`,
+        `${CacheScope.TABLE_USER}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
     }
 
     for (const d of bulkData) {
       await NocoCache.set(
-        `${CacheScope.BASE_USER}:${d.fk_model_id}:${d.fk_user_id}`,
+        `${CacheScope.TABLE_USER}:${d.fk_model_id}:${d.fk_user_id}`,
         d,
       );
 
       await NocoCache.appendToList(
-        CacheScope.BASE_USER,
+        CacheScope.TABLE_USER,
         [d.fk_model_id],
-        `${CacheScope.BASE_USER}:${d.fk_model_id}:${d.fk_user_id}`,
+        `${CacheScope.TABLE_USER}:${d.fk_model_id}:${d.fk_user_id}`,
       );
     }
   }
@@ -90,9 +90,9 @@ export default class TableUser {
     const res = await this.get(fk_model_id, fk_user_id, ncMeta);
 
     await NocoCache.appendToList(
-      CacheScope.BASE_USER,
+      CacheScope.TABLE_USER,
       [fk_model_id],
-      `${CacheScope.BASE_USER}:${fk_model_id}:${fk_user_id}`,
+      `${CacheScope.TABLE_USER}:${fk_model_id}:${fk_user_id}`,
     );
 
     return res;
@@ -279,7 +279,7 @@ export default class TableUser {
       },
     );
 
-    await NocoCache.update(`${CacheScope.BASE_USER}:${tableId}:${userId}`, {
+    await NocoCache.update(`${CacheScope.TABLE_USER}:${tableId}:${userId}`, {
       roles,
     });
 
@@ -301,7 +301,7 @@ export default class TableUser {
     });
 
     await NocoCache.update(
-      `${CacheScope.BASE_USER}:${tableId}:${userId}`,
+      `${CacheScope.TABLE_USER}:${tableId}:${userId}`,
       updateObj,
     );
 
@@ -418,14 +418,6 @@ export default class TableUser {
           `${MetaTable.MODELS}.source_id`,
           ncMeta.knex.raw('?', [sourceId])
         )
-      }
-
-      if(roles[OrgUserRoles.SUPER_ADMIN]) {
-        qb.select(
-          ncMeta.knex.raw(`'${TableRoles.OWNER}' as table_roles`)
-        )
-      } else {
-        qb.select(`${MetaTable.TABLE_USERS}.roles as table_roles`)
       }
 
     // filter shared with me tables

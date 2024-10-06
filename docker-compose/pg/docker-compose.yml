@@ -29,3 +29,6 @@ services:
 volumes: 
   db_data: {}
   nc_data: {}
+
+# docker run -d -p 5432:5432 -v /root/nc-db-pg:/var/lib/postgresql/data -e POSTGRES_DB=root_db -e POSTGRES_PASSWORD=password -e POSTGRES_USER=postgres --name nocodb-pg postgres
+# docker run -p 5432:5432 -e NC_DB="pg://host.docker.internal:5432?u=postgres&p=password&d=root_db" --add-host=host.docker.internal:host-gateway --name nocodb-prod nocodb/nocodb
