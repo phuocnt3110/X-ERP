@@ -219,7 +219,7 @@ const onReady = () => {
         </Pane>
         <ExtensionsPane ref="extensionPaneRef" />
       </Splitpanes>
-      <SmartsheetDetails v-if="openedViewsTab === 'field' || openedViewsTab === 'relation'" />
+      <SmartsheetDetails v-if="openedViewsTab === 'field' || openedViewsTab === 'relation' || openedViewsTab === 'webhook' || openedViewsTab === 'api'" />
       <SmartsheetMembers v-if="openedViewsTab === 'members'"/>
     </div>
     <LazySmartsheetExpandedFormDetached />
