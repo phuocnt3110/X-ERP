@@ -73,6 +73,10 @@ export const useRolesShared = createSharedComposable(() => {
   const tableRoles = computed<RolesObj | null>(() => {
     let tableRoles = user.value?.table_roles ?? {}
 
+    if (Object.keys(tableRoles).length === 0) {
+      tableRoles = user.value?.roles ?? {}
+    }
+
     tableRoles = extractRolesObj(tableRoles)
 
     return tableRoles
