@@ -5,10 +5,14 @@ services:
       root_db: 
         condition: service_healthy
     environment: 
-      NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
-    image: "nocodb/nocodb:latest"
+      NC_DB: "mysql2://noco_dev_db:3306?u=noco&p=password&d=noco_dev_db"
+    image: "phuocnt3110/xerp:lastest"
     ports: 
+<<<<<<< HEAD
+      - "3333:3333"
+=======
       - "8088:8088"
+>>>>>>> ae915c88fe6b4c509747925bbd1f2478becdc775
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
@@ -16,7 +20,7 @@ services:
     ports: 
       - "3306:3306"
     environment: 
-      MYSQL_DATABASE: root_db
+      MYSQL_DATABASE: noco_dev_db
       MYSQL_PASSWORD: password
       MYSQL_ROOT_PASSWORD: password
       MYSQL_USER: noco
