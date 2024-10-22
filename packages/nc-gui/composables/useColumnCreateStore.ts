@@ -100,6 +100,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           uidt: formState.value.uidt,
           temp_id: formState.value.temp_id,
           userHasChangedTitle: !!formState.value?.userHasChangedTitle,
+          model_id: activeView.value!.fk_model_id
         }),
         ...(isEdit.value && {
           // take the existing formState.value when editing a column
