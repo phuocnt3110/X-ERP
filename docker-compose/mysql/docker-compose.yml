@@ -8,15 +8,7 @@ services:
       NC_DB: "mysql2://noco_dev_db:3306?u=noco&p=password&d=noco_dev_db"
     image: "phuocnt3110/xerp:lastest"
     ports: 
-<<<<<<< HEAD
-      - "8082:8082"
-=======
-<<<<<<< HEAD
       - "3333:3333"
-=======
-      - "8088:8088"
->>>>>>> ae915c88fe6b4c509747925bbd1f2478becdc775
->>>>>>> 9a013974e5f30d0c52374f5ca4afc76ec671dbe3
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
