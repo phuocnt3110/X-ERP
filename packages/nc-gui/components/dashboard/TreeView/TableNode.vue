@@ -42,7 +42,6 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const { copy } = useCopy()
 
-const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
 const { setMenuContext, openRenameTableDialog: _openRenameTableDialog, duplicateTable: _duplicateTable } = inject(TreeViewInj)!
@@ -89,7 +88,7 @@ const { isSharedBase } = useBase()
 // const isMultiBase = computed(() => base.sources && base.sources.length > 1)
 
 const canUserEditEmote = computed(() => {
-  return isUIAllowed('tableIconEdit', { roles: baseRole?.value })
+  return isUIAllowed('tableIconEdit', { roles: table.table_roles?.value })
 })
 
 const isExpanded = ref(false)
@@ -390,7 +389,7 @@ const source = computed(() => {
               >
                 <NcDivider />
                 <NcMenuItem
-                  v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
+                  v-if="isUIAllowed('tableRename', { roles: table.table_roles })"
                   :data-testid="`sidebar-table-rename-${table.title}`"
                   class="nc-table-rename"
                   @click="openRenameTableDialog(table, source.id)"
@@ -403,9 +402,7 @@ const source = computed(() => {
 
                 <NcMenuItem
                   v-if="
-                    isUIAllowed('tableDuplicate', {
-                      source,
-                    }) &&
+                    isUIAllowed('tableDuplicate', { roles: table.table_roles }) &&
                     base.sources?.[sourceIndex] &&
                     (source.is_meta || source.is_local)
                   "
@@ -430,7 +427,7 @@ const source = computed(() => {
 
                 <NcDivider />
                 <NcMenuItem
-                  v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
+                  v-if="isUIAllowed('tableDelete', { roles: table.table_roles })"
                   :data-testid="`sidebar-table-delete-${table.title}`"
                   class="!text-red-500 !hover:bg-red-50 nc-table-delete"
                   @click="deleteTable"

@@ -31,7 +31,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async dataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -64,7 +64,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/find-one',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/find-one',
   ])
-  @Acl('dataFindOne')
+  @Acl('dataFindOne', {scope: 'table'})
   async dataFindOne(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -84,7 +84,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/groupby',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby',
   ])
-  @Acl('dataGroupBy')
+  @Acl('dataGroupBy', {scope: 'table'})
   async dataGroupBy(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -104,7 +104,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/count',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/count',
   ])
-  @Acl('dataCount')
+  @Acl('dataCount', {scope: 'table'})
   async dataCount(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -128,7 +128,6 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName',
   ])
   @HttpCode(200)
-  @Acl('dataInsert')
   async dataInsert(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -152,7 +151,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
-  @Acl('dataUpdate')
+  @Acl('dataUpdate', {scope: 'table', subScope: 'column'})
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -177,7 +176,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
-  @Acl('dataDelete')
+  @Acl('dataDelete', {scope: 'table', subScope: 'column'})
   async dataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -199,7 +198,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId',
   ])
-  @Acl('dataRead')
+  @Acl('dataRead', {scope: 'table'})
   async dataRead(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -225,7 +224,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/exist',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/:rowId/exist',
   ])
-  @Acl('dataExist')
+  @Acl('dataExist', {scope: 'table'})
   async dataExist(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

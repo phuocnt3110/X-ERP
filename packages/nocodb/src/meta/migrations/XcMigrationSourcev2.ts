@@ -43,6 +43,9 @@ import * as nc_053_jobs from '~/meta/migrations/v2/nc_053_jobs';
 import * as nc_054_id_length from '~/meta/migrations/v2/nc_054_id_length';
 import * as nc_055_junction_pk from '~/meta/migrations/v2/nc_055_junction_pk';
 import * as nc_056_integration from '~/meta/migrations/v2/nc_056_integration';
+import * as nc_057_add_xlookup_meta from '~/meta/migrations/v2/nc_057_add_xlookup_meta';
+import * as nc_058_table_user from '~/meta/migrations/v2/nc_058_table_user';
+import * as nc_059_protect_column from '~/meta/migrations/v2/nc_059_protect_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -97,6 +100,9 @@ export default class XcMigrationSourcev2 {
       'nc_054_id_length',
       'nc_055_junction_pk',
       'nc_056_integration',
+      'nc_057_add_xlookup_meta',
+      'nc_058_table_user',
+      'nc_059_protect_column',
     ]);
   }
 
@@ -196,6 +202,12 @@ export default class XcMigrationSourcev2 {
         return nc_055_junction_pk;
       case 'nc_056_integration':
         return nc_056_integration;
+      case 'nc_057_add_xlookup_meta':
+        return nc_057_add_xlookup_meta;
+      case 'nc_058_table_user':
+        return nc_058_table_user;
+      case 'nc_059_protect_column':
+        return nc_059_protect_column;
     }
   }
 }

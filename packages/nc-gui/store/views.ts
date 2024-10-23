@@ -80,6 +80,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (route.value.params.slugs[0] === 'field') return 'field'
     if (route.value.params.slugs[0] === 'api') return 'api'
     if (route.value.params.slugs[0] === 'relation') return 'relation'
+    if (route.value.params.slugs[0] === 'members') return 'members'
 
     return 'view'
   })
@@ -209,8 +210,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
         await loadViews()
       } catch (e) {
         console.error(e)
+        message.error(await extractSdkResponseErrorMsg(e))
       } finally {
         if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = false
+        isViewsLoading.value = false
       }
     },
     { immediate: true },

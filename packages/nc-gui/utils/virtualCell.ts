@@ -19,6 +19,7 @@ export const isOo = (column: ColumnType) =>
   isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.ONE_TO_ONE
 
 export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup
+export const isXLookup = (column: ColumnType) => column.uidt === UITypes.XLookup
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup
 export const isFormula = (column: ColumnType) => column.uidt === UITypes.Formula
 export const isQrCode = (column: ColumnType) => column.uidt === UITypes.QrCode

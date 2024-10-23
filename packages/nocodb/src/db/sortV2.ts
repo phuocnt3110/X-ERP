@@ -8,6 +8,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Base, BaseUser, Sort } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import generateXLookupSelectQuery from '~/db/generateXLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 
 export default async function sortV2(
@@ -88,6 +89,21 @@ export default async function sortV2(
           const rootAlias = alias;
           {
             const selectQb = await generateLookupSelectQuery({
+              baseModelSqlv2,
+              column,
+              alias: rootAlias,
+              model,
+            });
+
+            qb.orderBy(selectQb?.builder, sort.direction || 'asc', nulls);
+          }
+        }
+        break;
+      case UITypes.XLookup:
+        {
+          const rootAlias = alias;
+          {
+            const selectQb = await generateXLookupSelectQuery({
               baseModelSqlv2,
               column,
               alias: rootAlias,

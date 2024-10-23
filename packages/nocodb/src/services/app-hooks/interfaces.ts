@@ -10,6 +10,7 @@ import type {
   PluginTestReqType,
   PluginType,
   ProjectUserReqType,
+  TableUserReqType,
   SortType,
   SourceType,
   TableType,
@@ -113,6 +114,21 @@ export interface UserEmailVerificationEvent extends NcBaseEvent {
 export interface TableEvent extends NcBaseEvent {
   table: TableType;
   user: UserType;
+  ip?: string;
+}
+
+export interface TableInviteEvent extends NcBaseEvent {
+  table: TableType;
+  user: UserType;
+  invitedBy: UserType;
+  ip?: string;
+}
+
+export interface TableUserUpdateEvent extends NcBaseEvent {
+  table: TableType;
+  user: UserType;
+  tableUser: TableUserReqType;
+  updatedBy: UserType;
   ip?: string;
 }
 

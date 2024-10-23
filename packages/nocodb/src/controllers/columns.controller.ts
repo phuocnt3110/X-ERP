@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ColumnReqType } from 'nocodb-sdk';
+import { ColumnReqType, ProtectColumnReqType } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ColumnsService } from '~/services/columns.service';
@@ -29,7 +29,7 @@ export class ColumnsController {
     '/api/v2/meta/tables/:tableId/columns/',
   ])
   @HttpCode(200)
-  @Acl('columnAdd')
+  @Acl('columnAdd', {scope: 'table'})
   async columnAdd(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
@@ -48,7 +48,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
-  @Acl('columnUpdate')
+  @Acl('columnUpdate', {scope: 'table', subScope: 'column'})
   async columnUpdate(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -67,7 +67,7 @@ export class ColumnsController {
     '/api/v1/db/meta/columns/:columnId',
     '/api/v2/meta/columns/:columnId',
   ])
-  @Acl('columnDelete')
+  @Acl('columnDelete', {scope: 'table', subScope: 'column'})
   async columnDelete(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -81,7 +81,7 @@ export class ColumnsController {
   }
 
   @Get(['/api/v1/db/meta/columns/:columnId', '/api/v2/meta/columns/:columnId'])
-  @Acl('columnGet')
+  @Acl('columnGet', {scope: 'table'})
   async columnGet(
     @TenantContext() context: NcContext,
     @Param('columnId') columnId: string,
@@ -134,5 +134,35 @@ export class ColumnsController {
     @Req() req: NcRequest,
   ) {
     return await this.columnsService.columnBulk(context, tableId, body, req);
+  }
+
+  @Patch([
+    '/api/v2/meta/column/:columnId/user',
+  ])
+  async columnUserUpdate(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Body() body: ProtectColumnReqType,
+    @Req() req: NcRequest,
+  ) {
+     return await this.columnsService.columnUserUpdate(context, {
+      columnId,
+      protectColumn: body,
+      req,
+      user: req.user,
+    });
+  }
+
+  @Get(['/api/v2/meta/column/:columnId/user'])
+  async columnUserGet(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Req() req: NcRequest
+  ) {
+    return await this.columnsService.columnUserGet(context, {
+      columnId,
+      req,
+      user: req.user,
+    });
   }
 }

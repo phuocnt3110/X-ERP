@@ -7,6 +7,7 @@ declare module 'express-serve-static-core' {
     ncBaseId?: string;
     user: UserType & {
       base_roles?: Record<string, boolean>;
+      table_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;
       provider?: string;
     };
