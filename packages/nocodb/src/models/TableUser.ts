@@ -322,7 +322,7 @@ export default class TableUser {
 
     // delete list cache to refresh list
     await NocoCache.deepDel(
-      `${CacheScope.BASE_USER}:${tableId}:list`,
+      `${CacheScope.TABLE_USER}:${tableId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
 

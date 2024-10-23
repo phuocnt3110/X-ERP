@@ -207,6 +207,12 @@ const editEnabled = ref(false)
 
 const isGridCellMouseDown = ref(false)
 
+const tablesStore = useTablesStore()
+const { getTableUsers,  } = tablesStore
+const { activeTableId } = storeToRefs(tablesStore)
+
+const tableUsers = ref<User[]>([])
+
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
@@ -1377,6 +1383,8 @@ onMounted(() => {
   until(scrollWrapper)
     .toBeTruthy()
     .then(() => calculateSlices())
+
+  loadCollaborators()
 })
 
 // #Listeners
@@ -1666,6 +1674,22 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
       left: scrollWrapper.value.scrollWidth,
       behavior,
     })
+  }
+}
+
+const loadCollaborators = async () => {
+  try {
+    const { users } = await getTableUsers({
+      tableId: activeTableId.value!,
+      force: true,
+    })
+
+    tableUsers.value = [
+      ...users
+        .filter((u: any) => !u?.deleted && u.roles && u.roles != "table-level-no-access")
+    ]
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -2153,6 +2177,7 @@ onKeyStroke('ArrowDown', onDown)
                             :row-index="rowIndex"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
                             :read-only="!hasEditPermission"
+                            :table-users="tableUsers"
                             @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, fields[0].title, state)"
                             @navigate="onNavigate"
@@ -2216,6 +2241,7 @@ onKeyStroke('ArrowDown', onDown)
                             :row-index="rowIndex"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                             :read-only="columnObj.protect_type === 'default' && !hasEditPermission"
+                            :table-users="tableUsers"
                             @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, columnObj.title, state)"
                             @navigate="onNavigate"
