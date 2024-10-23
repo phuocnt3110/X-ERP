@@ -340,6 +340,14 @@
             "in": "query",
             "name": "base_id",
             "description": "Pass base id to get base specific roles along with user info"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id"
+            },
+            "in": "query",
+            "name": "table_id",
+            "description": "Pass table id to get table specific roles along with user info"
           }
         ]
       }
@@ -3977,6 +3985,349 @@
         "description": "List all tables in a given base"
       }
     },
+    "/api/v2/meta/tables/{tableId}/users": {
+      "get": {
+        "summary": "List Table Users",
+        "operationId": "auth-table-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/User"
+                          }
+                        },
+                        "pageInfo": {
+                          "$ref": "#/components/schemas/Paginated"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "users": {
+                        "list": [
+                          {
+                            "email": "user@example.com",
+                            "email_verified": true,
+                            "firstname": "Alice",
+                            "id": "us_8kugj628ebjngs",
+                            "lastname": "Smith",
+                            "roles": "org-level-viewer"
+                          }
+                        ],
+                        "pageInfo": {
+                          "isFirstPage": true,
+                          "isLastPage": true,
+                          "page": 1,
+                          "pageSize": 10,
+                          "totalRows": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all users in the given table.",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "post": {
+        "summary": "Create Table User",
+        "operationId": "auth-table-user-add",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "waau9tvy75zsd"
+                      },
+                      "description": "Success Message for inviting single email",
+                      "example": "The user has been invited successfully"
+                    },
+                    "invite_token": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "yx0s35u8ds3p7"
+                      },
+                      "example": "8354ddba-a769-4d64-8397-eccb2e2b3c06"
+                    },
+                    "error": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "yhfi6wzhr6zr1"
+                      },
+                      "items": {
+                        "x-stoplight": {
+                          "id": "ce0hlv3d0f96j"
+                        },
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "dgnh01j4lxvl1"
+                            },
+                            "example": "w@nocodb.com"
+                          },
+                          "error": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "7dgttqiijg8no"
+                            },
+                            "example": "<ERROR_MESSAGE>"
+                          }
+                        }
+                      }
+                    },
+                    "email": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "08pqst2q30vot"
+                      },
+                      "example": "w@nocodb.com"
+                    }
+                  }
+                },
+                "examples": {
+                  "Inviting a user without any errors": {
+                    "value": {
+                      "msg": "The user has been invited successfully"
+                    }
+                  },
+                  "Inviting a user but invitation email failed to send": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "email": "w@nocodb.com"
+                    }
+                  },
+                  "Inviting multiple users": {
+                    "value": {
+                      "invite_token": "8354ddba-a769-4d64-8397-eccb2e2b3c06",
+                      "error": [
+                        {
+                          "email": "w@nocodb.com",
+                          "error": "<ERROR MESSAGE>"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "owner"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Create a user and add it to the given table",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/tables/{tableId}/users/{userId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "description": "Unique User ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Table User",
+        "operationId": "auth-table-user-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5a2q8as60daly"
+                      },
+                      "description": "Success Message",
+                      "example": "The user has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "owner"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Update a given user in a given table. Exclusive for Super Admin. Access with API Tokens will be blocked.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Table User",
+        "operationId": "auth-table-user-remove",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "5h7c9lqh5ynve"
+                      },
+                      "example": "The user has been updated successfully",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Delete a given user in a given table. Exclusive for Super Admin. Access with API Tokens will be blocked.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
@@ -4677,6 +5028,79 @@
             "required": true,
             "description": "Unique Column ID"
           }
+        ]
+      }
+    },
+    "api/v2/meta/column/:columnId/user": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Column User",
+        "operationId": "protect-column-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/col"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectColumnReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table Column"
+        ],
+        "description": "Update column user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "Update Column User",
+        "operationId": "column-user-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "$ref": "#/components/responses/ColumnUserList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Source"
         ]
       }
     },
@@ -19603,7 +20027,8 @@
             "unique": 0,
             "updated_at": "2023-03-02 13:14:16",
             "validate": null,
-            "virtual": null
+            "virtual": null,
+            "protect_type": "public"
           }
         ],
         "title": "Column Model",
@@ -19821,6 +20246,7 @@
               "LongText",
               "LinkToAnotherRecord",
               "Lookup",
+              "XLookup",
               "MultiSelect",
               "Number",
               "Percent",
@@ -19852,6 +20278,11 @@
           "visible": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
+          },
+          "protect_type": {
+            "description": "Column protect type",
+            "example": "public",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -19981,6 +20412,9 @@
               },
               {
                 "$ref": "#/components/schemas/LookupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/XLookupColumnReq"
               },
               {
                 "$ref": "#/components/schemas/NormalColumnRequest"
@@ -23004,6 +23438,237 @@
           "id": "rmmtwpsofeqo5"
         }
       },
+      "XLookup": {
+        "description": "Model for XLookup",
+        "examples": [
+          {
+            "id": "lk_mngsu0e45njbxr",
+            "parentId": "m58nhb71gq4oz0l",
+            "fk_column_id": "cl_vdiy9bz7h11kdm",
+            "fk_parent_column_id": "cl_5jestbjfneb649",
+            "fk_child_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "order": 1
+          }
+        ],
+        "title": "Lookup Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "parentId": {
+            "$ref": "#/components/schemas/Id",
+            "description": " table to XLookup Column"
+          },
+          "fk_lookup_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Lookup Column"
+          },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
+          },
+          "fk_child_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among the list",
+            "example": 1
+          }
+        },
+        "x-stoplight": {
+          "id": "53ff6kxwlgjrb"
+        }
+      },
+      "XLookupColumnReq": {
+        "description": "Model for XLookup Column Request",
+        "examples": [
+          {
+            "parentId": "m58nhb71gq4oz0l",
+            "fk_child_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "fk_parent_column_id": "cl_5jestblzneb684",
+            "title": "My Lookup",
+            "uidt": "XLookup"
+          }
+        ],
+        "title": "Lookup Column Request Model",
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "$ref": "#/components/schemas/Id",
+            "description": " table to XLookup Column"
+          },
+          "fk_lookup_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to XLookup Column"
+          },
+          "fk_child_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Child Column"
+          },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Child Key to Parent Column"
+          },
+          "title": {
+            "maxLength": 255,
+            "type": "string",
+            "description": "Lookup Title",
+            "example": "My Lookup"
+          },
+          "uidt": {
+            "enum": [
+              "Lookup"
+            ],
+            "type": "string",
+            "description": "UI DataType"
+          }
+        },
+        "x-stoplight": {
+          "id": "rmmtwpsofeqo5"
+        }
+      },
+      "ColumnUserReq": {
+        "description": "Model for Column User Request",
+        "examples": [
+          {
+            "fk_column_id": "vcsfdskđffdjk",
+            "fk_user_id": "bvbdfjmndsvsd"
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "description": "The ID of the Column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "description": "The ID of User can edit column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fk_column_id",
+          "fk_user_id"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ColumnUser": {
+        "description": "Model for Column User Request",
+        "examples": [
+          {
+            "fk_column_id": "vcsfdskđffdjk",
+            "fk_user_id": "bvbdfjmndsvsd"
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "description": "The ID of the Column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "description": "The ID of User can edit column",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "email": {
+            "description": "User email",
+            "example": "test@gmail.com",
+            "type": "string"
+          },
+          "display_name": {
+            "description": "User name",
+            "example": "abc",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fk_column_id",
+          "fk_user_id",
+          "email",
+          "display_name"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ProtectColumnReq": {
+        "description": "Model for Protect Column Request",
+        "examples": [
+          {
+            "protect_type": "public",
+            "user_list": [
+              "bvbdfjmndsvsd"
+            ]
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "protect_type": {
+            "description": "Column protect type (public, owner, custom",
+            "type": "string"
+          },
+          "user_list": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "protect_type"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
+      "ColumnUserList": {
+        "description": "Model for Column User List",
+        "examples": [
+          {
+            "user_list": [
+              {
+                "fk_column_id": "vcsfdskđffdjk",
+                "fk_user_id": "bvbdfjmndsvsd"
+              }
+            ]
+          }
+        ],
+        "title": "Column User Request Model",
+        "type": "object",
+        "properties": {
+          "user_list": {
+            "items": {
+              "$ref": "#/components/schemas/ColumnUser"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "user_list"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
+        }
+      },
       "Map": {
         "description": "Model for Map",
         "examples": [
@@ -23375,6 +24040,7 @@
               "LongText",
               "LinkToAnotherRecord",
               "Lookup",
+              "XLookup",
               "MultiSelect",
               "Number",
               "Percent",
@@ -24116,6 +24782,44 @@
             "example": 1,
             "minimum": 0
           }
+        }
+      },
+      "TableUserReq": {
+        "description": "Model for Table User Request",
+        "examples": [
+          {
+            "email": "user@example.com",
+            "roles": "owner"
+          }
+        ],
+        "title": "Table User Request Model",
+        "type": "object",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string",
+            "description": "Table User Email"
+          },
+          "roles": {
+            "enum": [
+              "table-level-no-access",
+              "table-level-commenter",
+              "table-level-editor",
+              "table-level-guest",
+              "table-level-owner",
+              "table-level-viewer",
+              "table-level-creator"
+            ],
+            "type": "string",
+            "description": "Table User Role"
+          }
+        },
+        "required": [
+          "email",
+          "roles"
+        ],
+        "x-stoplight": {
+          "id": "3bvgqk9tn16ur"
         }
       },
       "ProjectUserReq": {
@@ -25737,6 +26441,9 @@
           "base_roles": {
             "description": "The base roles of the user"
           },
+          "table_roles": {
+            "description": "The table roles of the user"
+          },
           "workspace_roles": {
             "description": "The workspace roles of the user"
           }
@@ -27336,6 +28043,28 @@
                     "pageSize": 10,
                     "totalRows": 1
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ColumnUserList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ColumnUserList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "user_list": [
+                    {
+                      "email": "user@example.com",
+                      "id": "us_8kugj628ebjngs"
+                    }
+                  ]
                 }
               }
             }

@@ -9,6 +9,7 @@ import type { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
+import XLookupColumn from '~/models/XLookupColumn';
 import RollupColumn from '~/models/RollupColumn';
 import SelectOption from '~/models/SelectOption';
 import Model from '~/models/Model';
@@ -90,6 +91,9 @@ export default class Column<T = any> implements ColumnType {
   public validate: any;
   public meta: any;
 
+  public protect_type: string;
+  public can_edit?: boolean;
+
   constructor(data: Partial<ColumnType | Column>) {
     Object.assign(this, data);
   }
@@ -152,6 +156,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'meta',
       'virtual',
+      'protect_type',
     ]);
 
     if (!insertObj.column_name) {
@@ -186,6 +191,8 @@ export default class Column<T = any> implements ColumnType {
       );
       insertObj.source_id = model.source_id;
     }
+
+    insertObj.protect_type = 'default'
 
     if (!column.uidt) throw new Error('UI Datatype not found');
     const row = await ncMeta.metaInsert2(
@@ -244,6 +251,21 @@ export default class Column<T = any> implements ColumnType {
           {
             fk_column_id: colId,
             fk_relation_column_id: column.fk_relation_column_id,
+            fk_lookup_column_id: column.fk_lookup_column_id,
+          },
+          ncMeta,
+        );
+        break;
+      }
+      case UITypes.XLookup: {
+        // XLookupColumn.insert()
+        await XLookupColumn.insert(
+          context,
+          {
+            parentId: column.parentId,
+            fk_parent_column_id: column.fk_parent_column_id,
+            fk_column_id: colId,
+            fk_child_column_id: column.fk_child_column_id,
             fk_lookup_column_id: column.fk_lookup_column_id,
           },
           ncMeta,
@@ -459,6 +481,9 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Lookup:
         res = await LookupColumn.read(context, this.id, ncMeta);
         break;
+      case UITypes.XLookup:
+        res = await XLookupColumn.read(context, this.id, ncMeta);
+        break;
       case UITypes.Rollup:
         res = await RollupColumn.read(context, this.id, ncMeta);
         break;
@@ -653,10 +678,7 @@ export default class Column<T = any> implements ColumnType {
     if (colData) {
       const column = new Column(colData);
       await column.getColOptions(
-        {
-          workspace_id: column.fk_workspace_id,
-          base_id: column.base_id,
-        },
+        context,
         ncMeta,
       );
       return column;
@@ -690,7 +712,7 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, qrCodeCol.fk_column_id, ncMeta);
       }
     }
-
+  
     {
       const barcodeCols = await ncMeta.metaList2(
         context.workspace_id,
@@ -724,7 +746,30 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, lookup.fk_column_id, ncMeta);
       }
     }
-
+    // get xlookup columns and delete
+    {
+      const cachedList = await NocoCache.getList(CacheScope.COL_XLOOKUP, [id]);
+      let { list: lookups } = cachedList;
+      const { isNoneList } = cachedList;
+      if (!isNoneList && !lookups.length) {
+        lookups = await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
+          condition: { fk_lookup_column_id: id },
+        });
+        lookups = lookups.concat(
+          await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
+            condition: { fk_child_column_id: id },
+          })
+        );
+        lookups = lookups.concat(
+          await ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.COL_XLOOKUP, {
+            condition: { fk_parent_column_id: id },
+          })
+        );
+      }
+      for (const lookup of lookups) {
+        await Column.delete(lookup.fk_column_id, ncMeta);
+      }
+    }
     // get rollup/links column and delete
     {
       const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
@@ -744,7 +789,6 @@ export default class Column<T = any> implements ColumnType {
         await Column.delete(context, rollup.fk_column_id, ncMeta);
       }
     }
-
     {
       const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
         col.fk_model_id,
@@ -785,7 +829,6 @@ export default class Column<T = any> implements ColumnType {
           );
       }
     }
-
     //  if relation column check lookup and rollup and delete
     if (isLinksOrLTAR(col.uidt)) {
       {
@@ -828,7 +871,6 @@ export default class Column<T = any> implements ColumnType {
         }
       }
     }
-
     // delete sorts
     {
       const cachedList = await NocoCache.getList(CacheScope.SORT, [id]);
@@ -886,6 +928,10 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Lookup:
         colOptionTableName = MetaTable.COL_LOOKUP;
         cacheScopeName = CacheScope.COL_LOOKUP;
+        break;
+      case UITypes.XLookup:
+        colOptionTableName = MetaTable.COL_XLOOKUP;
+        cacheScopeName = CacheScope.COL_XLOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
       case UITypes.Links:
@@ -1029,6 +1075,18 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.XLookup: {
+        // XLookupColumn.insert()
+
+        await ncMeta.metaDelete(null, null, MetaTable.COL_XLOOKUP, {
+          fk_column_id: colId,
+        });
+        await NocoCache.deepDel(
+          `${CacheScope.COL_XLOOKUP}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+        break;
+      }
       case UITypes.Rollup: {
         await ncMeta.metaDelete(
           context.workspace_id,
@@ -1155,6 +1213,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
+      'protect_type',
     ]);
 
     if (column.validate) {
@@ -1530,6 +1589,8 @@ export default class Column<T = any> implements ColumnType {
       if (column.meta && typeof column.meta === 'object') {
         insertObj.meta = JSON.stringify(column.meta);
       }
+
+      insertObj.protect_type = 'default'
 
       if (column.validate) {
         if (typeof column.validate === 'string')

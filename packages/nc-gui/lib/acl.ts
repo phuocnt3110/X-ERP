@@ -1,14 +1,21 @@
-import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk'
+import { OrgUserRoles, ProjectRoles, TableRoles, SourceRestriction } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   base: [
     ProjectRoles.NO_ACCESS,
     ProjectRoles.VIEWER,
-    ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
     ProjectRoles.CREATOR,
     ProjectRoles.OWNER,
+  ],
+  table: [
+    TableRoles.NO_ACCESS,
+    TableRoles.VIEWER,
+    TableRoles.COMMENTER,
+    TableRoles.EDITOR,
+    TableRoles.CREATOR,
+    TableRoles.OWNER,
   ],
 }
 
@@ -53,6 +60,7 @@ const rolePermissions = {
   [ProjectRoles.OWNER]: {
     include: {
       baseDelete: true,
+      protectColumnProjectOwner: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -61,10 +69,6 @@ const rolePermissions = {
       fieldUpdate: true,
       hookList: true,
       tableCreate: true,
-      tableRename: true,
-      tableDelete: true,
-      tableDuplicate: true,
-      tableSort: true,
       layoutRename: true,
       layoutDelete: true,
       airtableImport: true,
@@ -73,10 +77,6 @@ const rolePermissions = {
       settingsPage: true,
       newUser: true,
       webhook: true,
-      fieldEdit: true,
-      fieldAlter: true,
-      fieldDelete: true,
-      fieldAdd: true,
       tableIconEdit: true,
       viewCreateOrEdit: true,
       viewShare: true,
@@ -91,8 +91,6 @@ const rolePermissions = {
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      dataInsert: true,
-      dataEdit: true,
       sortSync: true,
       filterSync: true,
       filterChildrenRead: true,
@@ -101,14 +99,72 @@ const rolePermissions = {
       excelTableImport: true,
     },
   },
-  [ProjectRoles.COMMENTER]: {
+  [ProjectRoles.VIEWER]: {
+    include: {
+      baseSettings: true,
+      expandedForm: true,
+      apiDocs: true,
+    },
+  },
+  [ProjectRoles.NO_ACCESS]: {
+    include: {},
+  },
+
+  // Table role permissions
+  [TableRoles.OWNER]: {
+    include: {
+      tableDelete: true,
+    },
+  },
+  [TableRoles.CREATOR]: {
+    include: {
+      fieldUpdate: true,
+      hookList: true,
+      tableRename: true,
+      tableDuplicate: true,
+      tableSort: true,
+      airtableImport: true,
+      jsonImport: true,
+      excelImport: true,
+      settingsPage: true,
+      newTableUser: true,
+      webhook: true,
+      tableIconEdit: true,
+      viewShare: true,
+      tableShare: true,
+      tableMiscSettings: true,
+      csvImport: true,
+      fieldEdit: true,
+      fieldAdd: true,
+      columnAdd: true,
+      columnUpdate: true,
+      columnDelete: true,
+      columnSetAsPrimary: true,
+      columnBulk: true,
+      protectColumnTableCreator: true,
+    },
+  },
+  [TableRoles.EDITOR]: {
+    include: {
+      dataInsert: true,
+      dataEdit: true,
+      sortSync: true,
+      filterSync: true,
+      filterChildrenRead: true,
+      viewFieldEdit: true,
+      csvTableImport: true,
+      excelTableImport: true,
+      viewCreateOrEdit: true,
+    },
+  },
+  [TableRoles.COMMENTER]: {
     include: {
       commentDelete: true,
       commentResolve: true,
       commentEdit: true,
     },
   },
-  [ProjectRoles.VIEWER]: {
+  [TableRoles.VIEWER]: {
     include: {
       baseSettings: true,
       expandedForm: true,
@@ -119,10 +175,10 @@ const rolePermissions = {
       auditListRow: true,
     },
   },
-  [ProjectRoles.NO_ACCESS]: {
+  [TableRoles.NO_ACCESS]: {
     include: {},
   },
-} as Record<OrgUserRoles | ProjectRoles, Perm | '*'>
+} as Record<OrgUserRoles | ProjectRoles | TableRoles, Perm | '*'>
 
 // excluded/restricted permissions at source level based on source restriction
 // `true` means permission is restricted and `false`/missing means permission is allowed

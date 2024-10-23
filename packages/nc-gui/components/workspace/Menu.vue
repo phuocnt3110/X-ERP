@@ -9,7 +9,7 @@
       >
         <a
           class="transition-all duration-200 transform w-24 min-w-10"
-          href="https://github.com/nocodb/nocodb"
+          href="https://dev2.noco-erp.com"
           target="_blank"
           rel="noopener noreferrer"
         >

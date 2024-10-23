@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const { getMeta } = useMetas()
 
+const { loadTableRoles } = useRoles()
+
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
 
@@ -23,6 +25,10 @@ watch(
   },
   { immediate: true },
 )
+
+  onBeforeMount(async () => {
+    await loadTableRoles(route.params.viewId)
+  })
 </script>
 
 <template>

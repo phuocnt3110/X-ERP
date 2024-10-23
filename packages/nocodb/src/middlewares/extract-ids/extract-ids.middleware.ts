@@ -4,6 +4,7 @@ import {
   extractRolesObj,
   OrgUserRoles,
   ProjectRoles,
+  TableRoles,
   SourceRestriction,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
@@ -30,9 +31,10 @@ import {
   SyncSource,
   View,
 } from '~/models';
+import Noco from '~/Noco';
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
-import { RootScopes } from '~/utils/globals';
+import { RootScopes, MetaTable } from '~/utils/globals';
 import { sourceRestrictions } from '~/utils/acl';
 import { Source } from '~/models';
 
@@ -97,6 +99,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
       }
     }
+    // extract table id based on request path params
+    if (params.tableName) {
+      const table = await Model.getByIdOrName(context, {id: params.tableName});
+      if (table) {
+        req.ncTableId = table.id;
+      }
+    }
     if (params.baseId) {
       req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
@@ -112,6 +121,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+      req.ncTableId = params.tableId;
     } else if (params.viewId) {
       const view =
         (await View.get(context, params.viewId)) ||
@@ -123,6 +133,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+      req.ncTableId = view instanceof  View ? view?.fk_model_id : view?.id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -151,6 +162,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+      req.ncTableId = view?.fk_model_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
 
@@ -160,6 +172,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+      req.ncTableId = view?.fk_model_id;
     } else if (params.sharedViewUuid) {
       const view = await View.getByUUID(context, req.params.sharedViewUuid);
 
@@ -198,6 +211,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = gridViewColumn.base_id;
       req.ncSourceId = gridViewColumn.source_id;
+      const view = (await View.get(context, gridViewColumn.fk_view_id)) || (await Model.get(context, gridViewColumn.fk_view_id));
+      req.ncTableId = view instanceof  View ? view?.fk_model_id : view?.id;
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(
         context,
@@ -210,6 +225,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = formViewColumn.base_id;
       req.ncSourceId = formViewColumn.source_id;
+      const view = (await View.get(context, formViewColumn.fk_view_id)) || (await Model.get(context, formViewColumn.fk_view_id));
+      req.ncTableId = view instanceof  View ? view?.fk_model_id : view?.id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         context,
@@ -222,6 +239,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = galleryViewColumn.base_id;
       req.ncSourceId = galleryViewColumn.source_id;
+      const view = (await View.get(context, galleryViewColumn.fk_view_id)) || (await Model.get(context, galleryViewColumn.fk_view_id));
+      req.ncTableId = view instanceof  View ? view?.fk_model_id : view?.id;
     } else if (params.columnId) {
       const column = await Column.get(context, { colId: params.columnId });
 
@@ -231,6 +250,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = column.base_id;
       req.ncSourceId = column.source_id;
+      req.ncTableId = column?.fk_model_id;
     } else if (params.filterId) {
       const filter = await Filter.get(context, params.filterId);
 
@@ -240,6 +260,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+      req.ncTableId = filter?.fk_model_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
 
@@ -249,6 +270,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+      req.ncTableId = filter?.fk_model_id;
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
 
@@ -258,6 +280,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = sort.base_id;
       req.ncSourceId = sort.source_id;
+      req.ncTableId = (await sort?.getModel(context)).id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
 
@@ -299,6 +322,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+      req.ncTableId = model?.id;
     }
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
@@ -323,6 +347,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+      req.ncTableId = model?.id;
     } else if (
       [
         '/api/v1/db/meta/comment/:commentId',
@@ -348,10 +373,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/api/v1/auth/user/me',
         '/api/v1/db/meta/plugins/webhook',
         '/api/v2/meta/plugins/webhook',
-      ].some((userMePath) => req.route.path === userMePath) &&
-      req.query.base_id
-    ) {
-      req.ncBaseId = req.query.base_id;
+      ].some((userMePath) => req.route.path === userMePath)
+    ){
+      if(req.query.table_id) req.ncTableId = req.query.table_id
+      else if(req.query.base_id) req.ncBaseId = req.query.base_id
+      if(req.query.table_id) req.ncTableId = req.query.table_id
     }
 
     // if integration list endpoint is called with baseId, then extract baseId if it's valid
@@ -387,7 +413,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 }
 
 function getUserRoleForScope(user: any, scope: string) {
-  if (scope === 'base') {
+  if (scope === 'table') {
+    return user?.table_roles;
+  } else if (scope === 'base') {
     return user?.base_roles;
   } else if (scope === 'org') {
     return user?.roles;
@@ -421,7 +449,85 @@ export class AclMiddleware implements NestInterceptor {
       context.getHandler(),
     );
 
+    const subScope = this.reflector.get<string>('subScope', context.getHandler());
+
     const req = context.switchToHttp().getRequest();
+
+    // For column authorization
+    if (subScope === 'column' && (req.method == 'PATCH' || req.method === 'DELETE')) {
+      const baseRoles = getUserRoleForScope(req.user, 'base')
+      const tableRoles = getUserRoleForScope(req.user, 'table')
+
+      if (baseRoles?.[ProjectRoles.OWNER] || tableRoles?.[TableRoles.OWNER]) {
+        return next.handle().pipe(
+          map((data) => {
+            return data;
+          }),
+        );
+      }
+
+      let column = undefined;
+
+      if (req.params.columnId) {
+        column = await Column.get(req.context, { colId: req.params.columnId });
+      } else if (req.params.tableName && req.params.viewName) {
+        const model = await Model.getByAliasOrId(req.context, {
+          base_id: req.context.base_id,
+          aliasOrId: req.params.tableName,
+        });
+      
+        if (!model) NcError.tableNotFound(req.params.tableName);
+
+        // const view =
+        //   (await View.getByTitleOrId(req.context, {
+        //     titleOrId: req.params.viewName,
+        //     fk_model_id: model.id,
+        //   }));
+        // if (!view) NcError.viewNotFound(req.params.viewName);
+
+        // await view.getColumns(req.context);
+
+        await model.getColumns(req.context);
+
+        const fieldName = Object.keys(req.body)[0]
+
+        for (const col of model.columns) {
+          if (col.title === fieldName) {
+            column = col
+            break
+          }
+        }
+
+        if (!column) NcError.fieldNotFound(fieldName);
+      }
+
+      if (!column) {
+        NcError.fieldNotFound(req.params.columnId);
+      }
+
+      if (column.protect_type === 'owner' || column.protect_type === 'custom') {
+        const columnUser = await Noco.ncMeta.metaList2(
+          req.context.workspace_id,
+          req.context.base_id,
+          MetaTable.COLUMN_USERS,
+          {
+            condition: {
+              fk_user_id: req.user.id,
+              fk_column_id: column.id,
+            }
+          },
+        );
+        if (columnUser.length > 0) {
+          return next.handle().pipe(
+            map((data) => {
+              return data;
+            }),
+          );
+        }
+
+        NcError.forbidden("You don't have permission to access this resource")
+      }
+    }
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
@@ -442,6 +548,13 @@ export class AclMiddleware implements NestInterceptor {
       };
     }
 
+    // assign owner role to super admin for all tables
+    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
+      req.user.table_roles = {
+        [TableRoles.OWNER]: true,
+      };
+    }
+
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
@@ -459,6 +572,11 @@ export class AclMiddleware implements NestInterceptor {
         roles?.editor ||
         roles?.viewer ||
         roles?.commenter ||
+        roles?.[TableRoles.OWNER] ||
+        roles?.[TableRoles.CREATOR] ||
+        roles?.[TableRoles.EDITOR] ||
+        roles?.[TableRoles.COMMENTER] ||
+        roles?.[TableRoles.VIEWER] ||
         roles?.[OrgUserRoles.SUPER_ADMIN] ||
         roles?.[OrgUserRoles.CREATOR] ||
         roles?.[OrgUserRoles.VIEWER]
@@ -560,11 +678,13 @@ export const Acl =
     permissionName: string,
     {
       scope = 'base',
+      subScope,
       allowedRoles,
       blockApiTokenAccess,
       extendedScope,
     }: {
       scope?: string;
+      subScope?: string;
       allowedRoles?: (OrgUserRoles | string)[];
       blockApiTokenAccess?: boolean;
       extendedScope?: string;
@@ -581,5 +701,7 @@ export const Acl =
       key,
       descriptor,
     );
+    SetMetadata('subScope', subScope)(target, key, descriptor);
     UseInterceptors(AclMiddleware)(target, key, descriptor);
   };
+  

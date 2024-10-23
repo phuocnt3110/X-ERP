@@ -5,10 +5,10 @@ services:
       root_db: 
         condition: service_healthy
     environment: 
-      NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
-    image: "nocodb/nocodb:latest"
+      NC_DB: "mysql2://noco_dev_db:3306?u=noco&p=password&d=noco_dev_db"
+    image: "phuocnt3110/xerp:lastest"
     ports: 
-      - "8082:8082"
+      - "3333:3333"
     restart: always
     volumes: 
       - "nc_data:/usr/app/data"
@@ -16,7 +16,7 @@ services:
     ports: 
       - "3306:3306"
     environment: 
-      MYSQL_DATABASE: root_db
+      MYSQL_DATABASE: noco_dev_db
       MYSQL_PASSWORD: password
       MYSQL_ROOT_PASSWORD: password
       MYSQL_USER: noco
@@ -39,3 +39,7 @@ services:
 volumes: 
   db_data: {}
   nc_data: {}
+
+# docker run -d -p 3306:3306 -v /root/nc-db-mysql:/var/lib/mysql -e MYSQL_DATABASE=root_db -e MYSQL_PASSWORD=password -e MYSQL_ROOT_PASSWORD=password -e MYSQL_USER=noco --name nocodb-mysql mysql:latest
+# docker run -p 8080:8080 -e NC_DB="mysql2://host.docker.internal:3306?u=noco&p=password&d=dev_db" --add-host=host.docker.internal:host-gateway --name nocodb-prod nocodb/nocodb
+

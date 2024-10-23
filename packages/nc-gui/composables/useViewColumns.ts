@@ -102,6 +102,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
               system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
               isViewEssentialField: isColumnViewEssential(column),
+              can_edit: column.can_edit,
               initialShow:
                 currentColumnField.show ||
                 isColumnViewEssential(currentColumnField) ||

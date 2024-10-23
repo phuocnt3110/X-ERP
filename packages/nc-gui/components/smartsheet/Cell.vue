@@ -11,6 +11,7 @@ interface Props {
   rowIndex?: number
   active?: boolean
   virtual?: boolean
+  tableUsers: User[]
 }
 
 const props = defineProps<Props>()
@@ -22,6 +23,8 @@ const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
 
 const readOnly = toRef(props, 'readOnly', false)
+
+const tableUsers = toRef(props, 'tableUsers', [])
 
 provide(ColumnInj, column)
 
@@ -182,7 +185,7 @@ const onContextmenu = (e: MouseEvent) => {
       <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
       <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
       <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
-      <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" :table-users="props.tableUsers"/>
       <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
       <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
