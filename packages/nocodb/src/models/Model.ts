@@ -14,6 +14,7 @@ import Hook from '~/models/Hook';
 import View from '~/models/View';
 import Comment from '~/models/Comment';
 import Column from '~/models/Column';
+import User from '~/models/User';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/catchError';
@@ -407,9 +408,11 @@ export default class Model implements TableType {
     {
       table_name,
       id,
+      user,
     }: {
       table_name?: string;
       id?: string;
+      user?: any;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
@@ -437,6 +440,22 @@ export default class Model implements TableType {
       // });
       // modelData.sorts = await Sort.list({ modelId: modelData.id });
     }
+    
+    let allowColumns = undefined;
+    if (user) {
+      const columnUsers = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMN_USERS,
+        {
+          condition: {
+            fk_user_id: user.id,
+          }
+        },
+      );
+      allowColumns = columnUsers.map(e => e.fk_column_id)
+    }
+
     if (modelData) {
       const m = new Model(modelData);
 
@@ -446,7 +465,19 @@ export default class Model implements TableType {
 
       const columns = await m.getColumns(context, ncMeta, defaultViewId);
 
-      m.columnsById = columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
+      m.columnsById = columns.reduce((agg, c) => {
+        if (user) {
+          if (c.protect_type == 'default') {
+            c.can_edit = false
+          } else if (c.protect_type == 'owner') {
+            c.can_edit = user?.base_roles?.owner || user?.table_roles['table-level-owner'] || allowColumns.includes(c.id) ? true: false
+          } else if (c.protect_type == 'custom') {
+            c.can_edit = user?.base_roles?.owner || user?.table_roles['table-level-owner'] || allowColumns.includes(c.id)
+          }
+        }
+
+        return { ...agg, [c.id]: c }
+      }, {});
       return m;
     }
     return null;

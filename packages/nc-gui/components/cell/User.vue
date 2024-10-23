@@ -12,9 +12,10 @@ interface Props {
   rowIndex?: number
   location?: 'cell' | 'filter'
   forceMulti?: boolean
+  tableUsers: User[]
 }
 
-const { modelValue, forceMulti } = defineProps<Props>()
+const { modelValue, forceMulti, tableUsers } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -30,11 +31,7 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
-const basesStore = useBases()
 
-const { basesUser } = storeToRefs(basesStore)
-
-const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -83,7 +80,7 @@ const options = computed<UserFieldRecordType[]>(() => {
     (parseProp(column.value.meta)?.limitOptions || []).length
   ) {
     collaborators.push(
-      ...(baseUsers.value || [])
+      ...(tableUsers || [])
         .filter((user) => {
           if (limitOptionsById[user.id]?.show !== undefined) {
             return limitOptionsById[user.id]?.show
@@ -101,7 +98,7 @@ const options = computed<UserFieldRecordType[]>(() => {
     )
   } else {
     collaborators.push(
-      ...(baseUsers.value || [])
+      ...(tableUsers || [])
         .map((user: any) => ({
           id: user.id,
           email: user.email,

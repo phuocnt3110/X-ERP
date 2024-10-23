@@ -41,10 +41,11 @@ export class TablesController {
   ) {
     return new PagedResponseImpl(
       await this.tablesService.getAccessibleTables(context, {
+        userId: req.user.id,
         baseId,
         sourceId,
         includeM2M: includeM2M === 'true',
-        roles: extractRolesObj(req.user.base_roles),
+        roles: {...extractRolesObj(req.user.roles), ...extractRolesObj(req.user.base_roles)},
       }),
     );
   }

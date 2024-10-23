@@ -21,6 +21,7 @@ import type {
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+  TableUserUpdateEvent,
   RelationEvent,
   RowCommentEvent,
   SharedBaseEvent,
@@ -35,6 +36,7 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewColumnEvent,
+  TableInviteEvent,
   ViewEvent,
   WebhookEvent,
   WelcomeEvent,
@@ -199,6 +201,14 @@ export class AppHooksService {
       | AppEvents.TABLE_CREATE
       | AppEvents.TABLE_DELETE,
     data: TableEvent,
+  ): void;
+  emit(
+    event: AppEvents.TABLE_INVITE,
+    data: TableInviteEvent,
+  ): void;
+  emit(
+    event: AppEvents.TABLE_USER_UPDATE,
+    data: TableUserUpdateEvent,
   ): void;
   emit(
     event:

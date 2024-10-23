@@ -52,6 +52,7 @@ export function useSharedView() {
             f.show &&
             f.uidt !== UITypes.Rollup &&
             f.uidt !== UITypes.Lookup &&
+            f.uidt !== UITypes.XLookup &&
             f.uidt !== UITypes.Formula &&
             f.uidt !== UITypes.Barcode &&
             f.uidt !== UITypes.QrCode,

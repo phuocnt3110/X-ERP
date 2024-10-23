@@ -12,7 +12,7 @@ const isZhLang = computed(() => locale.value.startsWith('zh'))
   <general-share
     v-if="isZhLang"
     class="flex justify-center"
-    url="https://github.com/nocodb/nocodb"
+    url="https://dev2.noco-erp.com"
     :social-medias="['renren', 'douban', 'weibo', 'wechat']"
   />
 
@@ -21,13 +21,13 @@ const isZhLang = computed(() => locale.value.startsWith('zh'))
       :is="iconMap.discord"
       v-e="['e:community:discord']"
       class="icon text-[#7289DA]"
-      @click="open('https://discord.gg/5RgZmkW')"
+      @click="open('https://dev2.noco-erp.com')"
     />
 
     <div
       v-e="['e:community:discourse']"
       class="icon flex items-center justify-center min-w-[43px]"
-      @click="open('https://community.nocodb.com/')"
+      @click="open('https://dev2.noco-erp.com')"
     >
       <div class="discourse" />
     </div>
@@ -36,14 +36,14 @@ const isZhLang = computed(() => locale.value.startsWith('zh'))
       :is="iconMap.reddit"
       v-e="['e:community:reddit']"
       class="icon text-[#FF4600]"
-      @click="open('https://www.reddit.com/r/NocoDB/')"
+      @click="open('https://dev2.noco-erp.com')"
     />
 
     <component
       :is="iconMap.twitter"
       v-e="['e:community:twitter']"
       class="icon text-[#1DA1F2]"
-      @click="open('https://twitter.com/NocoDB')"
+      @click="open('https://dev2.noco-erp.com')"
     />
 
     <component

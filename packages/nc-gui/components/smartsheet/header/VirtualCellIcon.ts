@@ -40,6 +40,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
           return { icon: iconMap.cellLookup, color: 'text-purple-500' }
       }
       return { icon: iconMap.cellLookup, color: 'text-grey' }
+    case UITypes.XLookup:
+      return { icon: iconMap.lookup, color: 'text-orange-500' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
