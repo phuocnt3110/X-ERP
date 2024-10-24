@@ -1680,7 +1680,7 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
 const loadCollaborators = async () => {
   try {
     const { users } = await getTableUsers({
-      tableId: activeTableId.value!,
+      tableId: view.value ? view.value.fk_model_id : activeTableId.value!,
       force: true,
     })
 
