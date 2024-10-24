@@ -477,13 +477,11 @@ const parseConditionV2 = async (
         baseModelSqlv2,
         new Filter({
           ...filter,
-          value: knex.raw('?', [
-            // convert value to number if formulaDataType if numeric
-            formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
+          value: formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
             !isNaN(+filter.value)
               ? +filter.value
-              : filter.value ?? null, // in gp_null value is undefined
-          ]),
+              : filter.value ?? null // in gp_null value is undefined
+          ,
         } as any),
         aliasCount,
         alias,
@@ -582,12 +580,12 @@ const parseConditionV2 = async (
         filter.value = '';
       const _field = sanitize(
         customWhereClause
-          ? filter.value
+          ? customWhereClause
           : alias
           ? `${alias}.${column.column_name}`
           : column.column_name,
       );
-      const _val = customWhereClause ? customWhereClause : filter.value;
+      const _val:any = filter.value;
 
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);
@@ -597,7 +595,7 @@ const parseConditionV2 = async (
 
         // based on custom where clause(builder), we need to change the field and val
         // todo: refactor this to use a better approach to make it more readable and clean
-        let genVal = customWhereClause ? field : val;
+        let genVal = val;
         const dateFormat =
           knex.clientType() === 'mysql2'
             ? 'YYYY-MM-DD HH:mm:ss'
@@ -704,11 +702,7 @@ const parseConditionV2 = async (
 
         // if customWhereClause(builder) is provided, replace field with raw value
         // or assign value to val
-        if (customWhereClause) {
-          field = knex.raw('?', [genVal]);
-        } else {
-          val = genVal;
-        }
+        val = genVal;
 
         switch (filter.comparison_op) {
           case 'eq':
@@ -1134,7 +1128,11 @@ const parseConditionV2 = async (
             }
             break;
           case 'in':
-            qb = qb.whereIn(
+
+            qb = customWhereClause ? qb.where(
+              knex.raw(`? in (${val.map(_ => '?').join(',')})`, [field, ...val])
+            ):
+            qb.whereIn(
               field,
               Array.isArray(val) ? val : val?.split?.(','),
             );
