@@ -132,8 +132,6 @@ export class UsersService {
 
       if (settings?.invite_only_signup) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
-      } else {
-        roles = OrgUserRoles.VIEWER;
       }
     }
 
