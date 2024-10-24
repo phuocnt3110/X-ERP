@@ -14,13 +14,13 @@ ERROR=""
 
 function stop_and_remove_container() {
     # Stop and remove the existing container
-    docker stop nocodb-dev-build >/dev/null 2>&1
-    docker rm nocodb-dev-build >/dev/null 2>&1
+    docker stop xerp-dev-env >/dev/null 2>&1
+    docker rm xerp-dev-env >/dev/null 2>&1
 }
 
 function remove_image() {
     # Remove the existing image
-    docker rmi nocodb-dev-build >/dev/null 2>&1
+    docker rmi xerp-dev-env >/dev/null 2>&1
 }
 
 function install_dependencies() {
@@ -50,7 +50,7 @@ function package_nocodb() {
 
 function build_image() {
     # build docker
-    docker build . -f Dockerfile.local -t nocodb-dev-build || ERROR="build_image failed"
+    docker build . -f Dockerfile.local -t xerp-dev-env || ERROR="build_image failed"
 }
 
 function log_message() {
@@ -60,8 +60,8 @@ function log_message() {
         >&2 echo "ERROR: ${ERROR}"
         exit 1
     else
-        echo 'docker image with tag "nocodb-dev-build" built sussessfully. Use below sample command to run the container'
-        echo 'docker run -d -p 3333:8080 --name nocodb-dev-build nocodb-dev-build '
+        echo 'docker image with tag "xerp-dev-env" built sussessfully. Use below sample command to run the container'
+        echo 'docker run -d -p 3333:8080 --name xerp-dev-env xerp-dev-env '
     fi
 }
 
