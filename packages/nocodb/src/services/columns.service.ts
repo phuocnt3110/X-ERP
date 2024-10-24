@@ -3362,7 +3362,7 @@ export class ColumnsService {
     ncMeta: MetaService,
     sqlMgr: SqlMgrv2) {
     const pColumn = await Column.get(context, { colId: colBody.fk_parent_column_id }, ncMeta);
-    if(!pColumn.pk && (!pColumn.meta || !pColumn.meta.xlk_refer || pColumn.meta.xlk_refer.length == 0)) {
+    if(!pColumn.pk && !isVirtualCol(pColumn) && (!pColumn.meta || !pColumn.meta.xlk_refer || pColumn.meta.xlk_refer.length == 0)) {
       const pModel = await Model.getByIdOrName(context, 
         { id: colBody.parentId },
         ncMeta,
@@ -3401,13 +3401,15 @@ export class ColumnsService {
   ) {
     const pColumn = await Column.get(context, { colId: parent_col_id });
     const model = await pColumn.getModel(context);
-    const indexArgs = {
-      columns: [pColumn.column_name],
-      tn: model.table_name,
-      non_unique_original,
-      indexName,
-    };
-    sqlMgr.sqlOpPlus(source, 'indexDelete', indexArgs);
+    if(!pColumn.pk && !isVirtualCol(pColumn)) {
+      const indexArgs = {
+        columns: [pColumn.column_name],
+        tn: model.table_name,
+        non_unique_original,
+        indexName,
+      };
+      sqlMgr.sqlOpPlus(source, 'indexDelete', indexArgs);
+    }
   }
 
   async updateRollupOrLookup(
