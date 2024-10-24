@@ -14,13 +14,13 @@ ERROR=""
 
 function stop_and_remove_container() {
     # Stop and remove the existing container
-    docker stop nocodb-stg-build >/dev/null 2>&1
-    docker rm nocodb-stg-build >/dev/null 2>&1
+    docker stop xerp-stg-env >/dev/null 2>&1
+    docker rm xerp-stg-env >/dev/null 2>&1
 }
 
 function remove_image() {
     # Remove the existing image
-    docker rmi nocodb-stg-build >/dev/null 2>&1
+    docker rmi xerp-stg-env >/dev/null 2>&1
 }
 
 function install_dependencies() {
@@ -50,7 +50,7 @@ function package_nocodb() {
 
 function build_image() {
     # build docker
-    docker build . -f Dockerfile.local -t nocodb-stg-build || ERROR="build_image failed"
+    docker build . -f Dockerfile.local -t xerp-stg-env || ERROR="build_image failed"
 }
 
 function log_message() {
@@ -60,8 +60,8 @@ function log_message() {
         >&2 echo "ERROR: ${ERROR}"
         exit 1
     else
-        echo 'docker image with tag "nocodb-stg-build" built sussessfully. Use below sample command to run the container'
-        echo 'docker run -d -p 3333:8080 --name nocodb-stg-build nocodb-stg-build '
+        echo 'docker image with tag "xerp-stg-env" built sussessfully. Use below sample command to run the container'
+        echo 'docker run -d -p 3333:8080 --name xerp-stg-env xerp-stg-env '
     fi
 }
 
