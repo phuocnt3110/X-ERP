@@ -17,7 +17,7 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, formState } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -42,7 +42,7 @@ const refTables = computed(() => {
     return []
   }
 
-  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id && t.id !== formState.value.model_id)
 })
 
 const allowXLookupTypes = [UITypes.ID, UITypes.SingleLineText, UITypes.Number, UITypes.Decimal, UITypes.Lookup, 
