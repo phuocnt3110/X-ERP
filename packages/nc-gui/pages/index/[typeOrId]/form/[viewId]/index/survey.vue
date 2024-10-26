@@ -496,7 +496,7 @@ onMounted(() => {
       </div>
       <div class="md:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
         <div class="flex justify-end items-center gap-4">
-          <div class="flex justify-center">
+          <!-- <div class="flex justify-center">
             <GeneralFormBranding
               class="inline-flex mx-auto"
               :style="{
@@ -510,7 +510,7 @@ onMounted(() => {
                       .toHex8String(),
               }"
             />
-          </div>
+          </div> -->
           <div v-if="isStarted && !submitted" class="flex items-center gap-3">
             <NcButton
               type="secondary"
