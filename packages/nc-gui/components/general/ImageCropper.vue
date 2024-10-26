@@ -39,14 +39,18 @@ const handleCropImage = () => {
   }
 }
 
-const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
+const handleUploadImage = async (fileToUpload: FileReqType[]) => {
   if (uploadConfig?.path) {
     try {
-      const uploadResult = await api.storage.uploadByUrl(
+      const formData = new FormData()
+      for (const file of fileToUpload) {
+        formData.append('file', file.data, file.filename)
+      }
+      const uploadResult = await api.storage.upload(
         {
           path: uploadConfig?.path as string,
         },
-        fileToUpload,
+        formData
       )
       if (uploadResult?.[0]) {
         emit('submit', {
@@ -72,12 +76,11 @@ const handleSaveImage = async () => {
     ;(previewImage.value.canvas as any).toBlob(async (blob: Blob) => {
       await handleUploadImage([
         {
-          title: imageConfig.name,
-          fileName: imageConfig.name,
+          originalname: imageConfig.name,
+          filename: imageConfig.name,
           mimetype: imageConfig.type,
           size: blob.size,
-          url: previewImage.value.src,
-          data: previewImage.value.src,
+          data: blob,
         },
       ])
     }, imageConfig.type)

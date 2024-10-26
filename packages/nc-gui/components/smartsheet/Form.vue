@@ -472,7 +472,7 @@ const handleChangeBackground = (color: string) => {
 }
 
 const openUploadImage = (isUploadBanner: boolean) => {
-  if (!isEditable || !isEeUI) return
+  if (!isEditable) return
 
   imageCropperData.value.uploadConfig = {
     path: [NOCO, base.value.id, meta.value?.id, formViewData.value?.id].join('/'),
@@ -803,7 +803,7 @@ useEventListener(
                     />
                     <div class="absolute bottom-0 right-0 hidden group-hover:block">
                       <div class="flex items-center space-x-1 m-2">
-                        <NcTooltip :disabled="isEeUI">
+                        <NcTooltip :disabled="true">
                           <template #title>
                             <div class="text-center">
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -815,7 +815,6 @@ useEventListener(
                             size="small"
                             class="nc-form-upload-banner-btn"
                             data-testid="nc-form-upload-banner-btn"
-                            :disabled="!isEeUI"
                             @click="openUploadImage(true)"
                           >
                             <div class="flex gap-2 items-center">
@@ -882,7 +881,7 @@ useEventListener(
                               class="items-center space-x-1 flex-nowrap m-3"
                               :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                             >
-                              <NcTooltip :disabled="isEeUI">
+                              <NcTooltip :disabled="true">
                                 <template #title>
                                   <div class="text-center">
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -894,7 +893,6 @@ useEventListener(
                                   size="small"
                                   class="nc-form-upload-logo-btn"
                                   data-testid="nc-form-upload-log-btn"
-                                  :disabled="!isEeUI"
                                   @click="openUploadImage(false)"
                                 >
                                   <div class="flex gap-2 items-center">
@@ -1176,14 +1174,6 @@ useEventListener(
                         </NcButton>
                       </div>
                     </a-form>
-
-                    <div v-if="!parseProp(formViewData?.meta).hide_branding" class="px-8 lg:px-12">
-                      <a-divider v-if="!isLocked" class="!my-8" />
-                      <!-- Nocodb Branding  -->
-                      <div class="inline-block">
-                        <GeneralFormBranding />
-                      </div>
-                    </div>
                   </a-card>
                 </div>
               </div>
