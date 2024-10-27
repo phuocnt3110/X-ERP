@@ -99,7 +99,14 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   <div
     class="nc-cell-field h-full w-full nc-xlookup-cell"
     tabindex="-1"
-    :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    :style="{ 
+      height:
+        isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
+          ? undefined
+          : rowHeight
+          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+          : `2.85rem`,
+    }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div
