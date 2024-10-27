@@ -404,7 +404,7 @@ function onOpenModal({
   >
     <template v-if="!isSharedBase">
       <DashboardTreeViewCreateViewBtn
-        v-if="isUIAllowed('viewCreateOrEdit')"
+        v-if="isUIAllowed('viewCreateOrEdit', { roles: table.table_roles })"
         :align-left-level="isDefaultSource ? 1 : 2"
         :class="{
           '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,

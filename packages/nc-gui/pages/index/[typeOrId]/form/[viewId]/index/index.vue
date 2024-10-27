@@ -20,7 +20,11 @@ const {
   fieldMappings,
 } = useSharedFormStoreOrThrow()
 
+const { getPossibleAttachmentSrc } = useAttachment()
+
 const { isMobileMode } = storeToRefs(useConfigStore())
+
+const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(sharedFormView.value?.logo_url))
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -94,6 +98,25 @@ const onDecode = async (scannedCodeValue: string) => {
     >
       <template v-if="sharedFormView">
         <div>
+          <!-- Form logo  -->
+          <div class="mb-4">
+            <div
+              class="nc-form-logo-wrapper group relative inline-block h-56px overflow-hidden flex items-center"
+              :class="
+                sharedFormView.logo_url
+                  ? 'max-w-189px'
+                  : 'bg-gray-100 max-w-147px rounded-xl'
+              "
+              style="transition: all 0.3s ease-in"
+            >
+              <LazyCellAttachmentPreviewImage
+                v-if="sharedFormView.logo_url"
+                :key="sharedFormView.logo_url?.path"
+                :srcs="getFormLogoSrc"
+                class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+              />
+            </div>
+          </div>
           <h1 class="text-2xl font-bold text-gray-900 mb-4">
             {{ sharedFormView.heading }}
           </h1>
@@ -279,12 +302,6 @@ const onDecode = async (scannedCodeValue: string) => {
                 </div>
               </div>
             </a-form>
-          </div>
-          <div>
-            <a-divider class="!my-6 !md:my-8" />
-            <div class="inline-block">
-              <GeneralFormBranding />
-            </div>
           </div>
         </template>
       </template>

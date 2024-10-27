@@ -20,7 +20,9 @@ import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
+  XLookupType,
   UserType,
+  ProtectColumnReqType,
 } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
@@ -30,6 +32,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
 import {
   BaseUser,
+  ColumnUser,
   CalendarRange,
   Column,
   FormulaColumn,
@@ -48,6 +51,7 @@ import {
   randomID,
   sanitizeColumnName,
   validateLookupPayload,
+  validateXLookupPayload,
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
@@ -184,6 +188,7 @@ export class ColumnsService {
       user: UserType;
       reuse?: ReusableParams;
     },
+    ncMeta = this.metaService
   ) {
     const reuse = param.reuse || {};
 
@@ -303,6 +308,7 @@ export class ColumnsService {
       isCreatedOrLastModifiedByCol(column) ||
       [
         UITypes.Lookup,
+        UITypes.XLookup,
         UITypes.Rollup,
         UITypes.LinkToAnotherRecord,
         UITypes.Formula,
@@ -455,7 +461,7 @@ export class ColumnsService {
           }
         }
 
-        await this.updateRollupOrLookup(context, colBody, column);
+        await this.updateRollupOrLookup(context, colBody, column, source, reuse, ncMeta);
       } else {
         NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
@@ -1500,6 +1506,7 @@ export class ColumnsService {
       user: UserType;
       reuse?: ReusableParams;
     },
+    ncMeta = this.metaService
   ) {
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
@@ -1626,7 +1633,29 @@ export class ColumnsService {
           });
         }
         break;
+      case UITypes.XLookup:
+        {
+          await validateXLookupPayload(context, param.column);
 
+          const column = await Column.insert(context, {
+            ...colBody,
+            fk_model_id: table.id,
+          });
+
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+          if (driverType === 'pg') {
+            const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+              ProjectMgrv2.getSqlMgr(context, {
+                id: source.base_id,
+              })
+            );
+            await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+          }
+        }
+        break;
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
         await this.createLTARColumn(context, {
@@ -2030,6 +2059,7 @@ export class ColumnsService {
           await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
+            protect_type: 'default',
           });
         }
         break;
@@ -2187,6 +2217,28 @@ export class ColumnsService {
           }
         }
 
+        await Column.delete(context, param.columnId, ncMeta);
+        break;
+      case UITypes.XLookup:
+        // Delete parent col index
+        const pColumn = await Column.get(context, { colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
+        if(pColumn.meta && pColumn.meta.xlk_refer) {
+          var i = pColumn.meta.xlk_refer.indexOf(param.columnId);
+          if (i !== -1) {
+            pColumn.meta.xlk_refer.splice(i, 1);
+            await Column.updateMeta(context, {
+              colId: (column.colOptions as XLookupType).fk_parent_column_id,
+              meta: {'xlk_refer': pColumn.meta.xlk_refer},
+            });
+          }
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+          if(!pColumn.pk && pColumn.meta.xlk_refer.length === 0 && driverType === 'pg') {
+            await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
+          }
+        }
         await Column.delete(context, param.columnId, ncMeta);
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
@@ -3302,12 +3354,71 @@ export class ColumnsService {
     };
     await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
+  async createXLookupParentColIndex(
+    context: NcContext,
+    source: any,
+    colBody: any, 
+    colId: string,
+    ncMeta: MetaService,
+    sqlMgr: SqlMgrv2) {
+    const pColumn = await Column.get(context, { colId: colBody.fk_parent_column_id }, ncMeta);
+    if(!pColumn.pk && !isVirtualCol(pColumn) && (!pColumn.meta || !pColumn.meta.xlk_refer || pColumn.meta.xlk_refer.length == 0)) {
+      const pModel = await Model.getByIdOrName(context, 
+        { id: colBody.parentId },
+        ncMeta,
+      );
+      await this.createColumnIndex(context, {
+        column: new Column({
+          column_name: pColumn.column_name,
+          fk_model_id: pModel.id,
+        }),
+        source,
+        sqlMgr,
+      });
+    }
+    
+    let xlkRefer = [];
+    if(pColumn.meta && pColumn.meta.xlk_refer) {
+      xlkRefer = pColumn.meta.xlk_refer;
+    }
+    const i = xlkRefer.indexOf(colId);
+    if (i === -1) {
+      xlkRefer.push(colId);
+      await Column.updateMeta(context, {
+        colId: colBody.fk_parent_column_id,
+        meta: {'xlk_refer': xlkRefer},
+      });
+    }
+  }
+
+  async deleteXLookupParentColIndex(
+    context: NcContext,
+    source,
+    parent_col_id,
+    sqlMgr,
+    indexName = null,
+    non_unique_original = true
+  ) {
+    const pColumn = await Column.get(context, { colId: parent_col_id });
+    const model = await pColumn.getModel(context);
+    if(!pColumn.pk && !isVirtualCol(pColumn)) {
+      const indexArgs = {
+        columns: [pColumn.column_name],
+        tn: model.table_name,
+        non_unique_original,
+        indexName,
+      };
+      sqlMgr.sqlOpPlus(source, 'indexDelete', indexArgs);
+    }
+  }
 
   async updateRollupOrLookup(
     context: NcContext,
     colBody: any,
     column: Column<any>,
-  ) {
+    source: any,
+    reuse: ReusableParams,
+    ncMeta: MetaService) {
     // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
@@ -3319,6 +3430,50 @@ export class ColumnsService {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
       await Column.update(context, column.id, colBody);
+    } else if (
+      UITypes.XLookup === column.uidt &&
+      validateRequiredField(colBody, [
+        'fk_lookup_column_id',
+        'parentId',
+        'fk_parent_column_id',
+        'fk_child_column_id',
+      ])
+    ) {
+        await validateXLookupPayload(context, colBody, column.id);
+      
+      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+        ProjectMgrv2.getSqlMgr(context, {
+          id: source.base_id,
+        })
+      )
+      
+      if ((column.colOptions as XLookupType).fk_parent_column_id != colBody.fk_parent_column_id) {
+        const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+          NcConnectionMgrv2.get(source),
+        );
+        const driverType = dbDriver.clientType();
+        if (driverType === 'pg') {
+          await this.createXLookupParentColIndex(context, source, colBody, column.id, ncMeta, sqlMgr);
+        }
+        
+        const pColumnOld = await Column.get(context, { colId: (column.colOptions as XLookupType).fk_parent_column_id }, ncMeta);
+        if(pColumnOld.meta && pColumnOld.meta.xlk_refer) {
+          var i = pColumnOld.meta.xlk_refer.indexOf(column.id);
+          if (i !== -1) {
+            pColumnOld.meta.xlk_refer.splice(i, 1);
+            await Column.updateMeta(context, {
+              colId: (column.colOptions as XLookupType).fk_parent_column_id,
+              meta: {'xlk_refer': pColumnOld.meta.xlk_refer},
+            });
+          }
+          if(pColumnOld.meta.xlk_refer.length === 0 && driverType === 'pg') {
+            await this.deleteXLookupParentColIndex(context, source, (column.colOptions as XLookupType).fk_parent_column_id, sqlMgr);
+          }
+        }
+      }
+      
+      await Column.update(context, column.id, colBody);
+
     } else if (
       UITypes.Rollup === column.uidt &&
       validateRequiredField(colBody, [
@@ -3510,5 +3665,32 @@ export class ColumnsService {
     _columnBody: ColumnReqType,
   ) {
     // placeholder for post column update hook
+  }
+
+  async columnUserUpdate(context: NcContext, param: {
+    req?: any;
+    columnId: string;
+    protectColumn: ProtectColumnReqType;
+    cookie?: any;
+    user: UserType;
+    reuse?: ReusableParams;
+  },
+  ncMeta = this.metaService) {
+    if (param.protectColumn.protect_type == 'custom' && param.protectColumn.user_list == undefined) {
+      NcError.badRequest('Missing allowed edit user list');
+    }
+
+    ColumnUser.updateProtectColumn(context, param.columnId, param.protectColumn, param.user);
+  }
+
+  async columnUserGet(context: NcContext, param: {
+    req?: any;
+    columnId: string;
+    cookie?: any;
+    user: UserType;
+    reuse?: ReusableParams;
+  },
+  ncMeta = this.metaService) {
+    return ColumnUser.getUsersList(context, param.columnId);
   }
 }

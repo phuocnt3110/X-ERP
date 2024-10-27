@@ -223,6 +223,7 @@ export class MetaService {
       [MetaTable.COL_RELATIONS]: 'l',
       [MetaTable.COL_SELECT_OPTIONS]: 's',
       [MetaTable.COL_LOOKUP]: 'lk',
+      [MetaTable.COL_XLOOKUP]: 'xlk',
       [MetaTable.COL_ROLLUP]: 'rl',
       [MetaTable.COL_FORMULA]: 'f',
       [MetaTable.FILTER_EXP]: 'fi',

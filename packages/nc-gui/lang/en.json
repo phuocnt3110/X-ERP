@@ -396,6 +396,7 @@
     "Rollup": "Rollup",
     "Count": "Count",
     "Lookup": "Lookup",
+    "XLookup": "XLookup",
     "DateTime": "Date Time",
     "CreatedTime": "Create Time",
     "LastModifiedTime": "Last Modified Time",
@@ -820,6 +821,8 @@
     "docReference": "Document Reference",
     "selectUserRole": "Select User Role",
     "childTable": "Child table",
+    "linkingColumn": "Linking field",
+    "linkedColumn": "Linked field",
     "childColumn": "Child field",
     "childField": "Child field",
     "joinCloudForFree": "Join Cloud for Free",
@@ -1016,6 +1019,11 @@
       "enable": "Anyone with the link",
       "link": "Shared base link"
     },
+    "protectColumnType": {
+      "default": "Default",
+      "owner": "Only you and table owner can edit",
+      "custom": "Custom"
+    },
     "invite": "Invite",
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
@@ -1044,6 +1052,9 @@
     "renameLayout": "Layout Rename",
     "deleteTable": "Delete Table",
     "addField": "Add new field to this table",
+    "protectColumn": "Protect column",
+    "protectColumnDlg": "Column editing permissions",
+    "protectColumnCustomLabel": "Choose who can edit",
     "setDisplay": "Set as display value",
     "addRow": "Add new record",
     "saveRow": "Save record",
@@ -1400,6 +1411,7 @@
       }
     },
     "info": {
+      "protectColumnNotAllowEdit": "You don't have permission to edit data of this column",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",

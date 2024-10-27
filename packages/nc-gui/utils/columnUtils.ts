@@ -19,6 +19,11 @@ const uiTypes = [
     virtual: 1,
   },
   {
+    name: UITypes.XLookup,
+    icon: iconMap.lookup,
+    virtual: 1,
+  },
+  {
     name: UITypes.SingleLineText,
     icon: iconMap.cellText,
   },

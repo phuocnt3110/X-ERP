@@ -537,6 +537,7 @@ const isReadOnlyVirtualCell = (column: ColumnType) => {
     isFormula(column) ||
     isBarcode(column) ||
     isLookup(column) ||
+    isXLookup(column) ||
     isQrCode(column) ||
     isSystemColumn(column) ||
     isCreatedOrLastModifiedTimeCol(column) ||

@@ -207,6 +207,12 @@ const editEnabled = ref(false)
 
 const isGridCellMouseDown = ref(false)
 
+const tablesStore = useTablesStore()
+const { getTableUsers,  } = tablesStore
+const { activeTableId } = storeToRefs(tablesStore)
+
+const tableUsers = ref<User[]>([])
+
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
@@ -356,11 +362,18 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   if (!skipUpdate) {
     // update/save cell value
     await updateOrSaveRow?.(rowObj, columnObj.title)
+    if(xLookupChildTitles.value.indexOf(columnObj.title) != -1) {
+      await loadData?.()
+    } 
   }
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+  if (col.protect_type === 'default') {
+    if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+      return
+    }
+  } else if (!col.can_edit) {
     return
   }
 
@@ -385,6 +398,8 @@ function makeEditable(row: Row, col: ColumnType) {
   if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
     return
   }
+
+  edittedColumn = col
 
   return (editEnabled.value = true)
 }
@@ -427,6 +442,23 @@ const showSkeleton = computed(
     (disableSkeleton.value !== true && (isViewDataLoading.value || isPaginationLoading.value || isViewColumnsLoading.value)) ||
     !meta.value,
 )
+
+var edittedColumn: ColumnType = undefined
+
+const xLookupChildTitles = computed(() => {
+    const childTitles = [];
+    fields.value?.forEach(xlkField => {
+      if(isXLookup(xlkField)) {
+        for(const f of fields.value) {
+          if(f.id === xlkField.colOptions.fk_child_column_id) {
+            childTitles.push(f.title);
+            break;
+          }
+        }
+      }
+    });
+    return childTitles;
+})
 
 const cellMeta = computed(() => {
   return dataRef.value.map((row) => {
@@ -618,7 +650,7 @@ const {
       }
     } else if (e.key === 'Escape') {
       if (editEnabled.value) {
-        editEnabled.value = false
+        updateEditEnable(false)
         return true
       }
     } else if (e.key === 'Enter') {
@@ -627,7 +659,7 @@ const {
         return true
       }
       if (editEnabled.value) {
-        editEnabled.value = false
+        updateEditEnable(false)
         return true
       }
     } else if (e.key === 'Tab') {
@@ -763,6 +795,9 @@ const {
 
     // update/save cell value
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+    if(xLookupChildTitles.value.indexOf(columnObj.title) != -1) {
+      await loadData?.()
+    }
   },
   bulkUpdateRows,
   fillHandle,
@@ -901,7 +936,7 @@ onClickOutside(tableBodyEl, (e) => {
 const onNavigate = (dir: NavigateDir) => {
   if (activeCell.row === null || activeCell.col === null) return
 
-  editEnabled.value = false
+  updateEditEnable(false)
   clearSelectedRange()
 
   switch (dir) {
@@ -1348,6 +1383,8 @@ onMounted(() => {
   until(scrollWrapper)
     .toBeTruthy()
     .then(() => calculateSlices())
+
+  loadCollaborators()
 })
 
 // #Listeners
@@ -1617,6 +1654,19 @@ const loaderText = computed(() => {
   }
 })
 
+const updateEditEnable = (event) => {
+  if(activeCell.row != null && activeCell.col != null && 
+    editEnabled.value && !event && 
+    edittedColumn !== undefined && xLookupChildTitles.value.indexOf(edittedColumn.title) != -1) {
+      setTimeout(
+        () => loadData?.(),
+        500
+      )
+  }
+
+  editEnabled.value = event
+}
+
 function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
   if (scrollWrapper.value) {
     scrollWrapper.value?.scrollTo({
@@ -1624,6 +1674,22 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
       left: scrollWrapper.value.scrollWidth,
       behavior,
     })
+  }
+}
+
+const loadCollaborators = async () => {
+  try {
+    const { users } = await getTableUsers({
+      tableId: view.value ? view.value.fk_model_id : activeTableId.value!,
+      force: true,
+    })
+
+    tableUsers.value = [
+      ...users
+        .filter((u: any) => !u?.deleted && u.roles && u.roles != "table-level-no-access")
+    ]
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -2111,10 +2177,11 @@ onKeyStroke('ArrowDown', onDown)
                             :row-index="rowIndex"
                             :active="activeCell.col === 0 && activeCell.row === rowIndex"
                             :read-only="!hasEditPermission"
-                            @update:edit-enabled="editEnabled = $event"
+                            :table-users="tableUsers"
+                            @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, fields[0].title, state)"
                             @navigate="onNavigate"
-                            @cancel="editEnabled = false"
+                            @cancel="updateEditEnable(false)"
                           />
                         </div>
                       </SmartsheetTableDataCell>
@@ -2169,15 +2236,16 @@ onKeyStroke('ArrowDown', onDown)
                             v-model="row.row[columnObj.title]"
                             :column="columnObj"
                             :edit-enabled="
-                              !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                              ((columnObj.protect_type === 'default' && !!hasEditPermission) || columnObj.protect_type !== 'default') && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
                             "
                             :row-index="rowIndex"
                             :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                            :read-only="!hasEditPermission"
-                            @update:edit-enabled="editEnabled = $event"
+                            :read-only="columnObj.protect_type === 'default' && !hasEditPermission"
+                            :table-users="tableUsers"
+                            @update:edit-enabled="updateEditEnable($event)"
                             @save="updateOrSaveRow?.(row, columnObj.title, state)"
                             @navigate="onNavigate"
-                            @cancel="editEnabled = false"
+                            @cancel="updateEditEnable(false)"
                           />
                         </div>
                       </SmartsheetTableDataCell>

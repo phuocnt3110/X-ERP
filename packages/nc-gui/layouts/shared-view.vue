@@ -55,7 +55,7 @@ export default {
         <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
           <a
             class="transition-all duration-200 cursor-pointer transform hover:scale-105"
-            href="https://github.com/nocodb/nocodb"
+            href="https://dev2.noco-erp.com"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -87,7 +87,7 @@ export default {
         <div class="flex items-center gap-3">
           <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
 
-          <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+          <a href="https://noco-erp.com/dashboard/#/signup" target="_blank" class="!no-underline xs:hidden" rel="noopener">
             <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
           </a>
         </div>

@@ -33,6 +33,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           apiToken.fk_user_id,
           {
             baseId: req['ncBaseId'],
+            tableId: req['ncTableId'],
             ...(req['ncWorkspaceId']
               ? { workspaceId: req['ncWorkspaceId'] }
               : {}),
@@ -48,6 +49,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           display_name: dbUser.display_name,
           roles: extractRolesObj(dbUser.roles),
           base_roles: extractRolesObj(dbUser.base_roles),
+          table_roles: extractRolesObj(dbUser.table_roles),
           ...(dbUser.workspace_roles
             ? { workspace_roles: extractRolesObj(dbUser.workspace_roles) }
             : {}),

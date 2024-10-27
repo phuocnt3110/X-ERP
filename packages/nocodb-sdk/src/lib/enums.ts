@@ -19,6 +19,15 @@ export enum ProjectRoles {
   NO_ACCESS = 'no-access',
 }
 
+export enum TableRoles {
+  OWNER = "table-level-owner",
+  CREATOR = "table-level-creator",
+  EDITOR = "table-level-editor",
+  COMMENTER = "table-level-commenter",
+  VIEWER = "table-level-viewer",
+  NO_ACCESS = "table-level-no-access"
+}
+
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
@@ -54,8 +63,11 @@ export enum AppEvents {
   USER_EMAIL_VERIFICATION = 'user.email.verification',
 
   TABLE_CREATE = 'table.create',
+  TABLE_INVITE = 'table.invite',
   TABLE_DELETE = 'table.delete',
   TABLE_UPDATE = 'table.update',
+
+  TABLE_USER_UPDATE = "table.user.update",
 
   VIEW_CREATE = 'view.create',
   VIEW_DELETE = 'view.delete',
@@ -192,6 +204,12 @@ export const RoleLabels = {
   [ProjectRoles.COMMENTER]: 'commenter',
   [ProjectRoles.VIEWER]: 'viewer',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [TableRoles.OWNER]: 'owner',
+  [TableRoles.CREATOR]: 'creator',
+  [TableRoles.EDITOR]: 'editor',
+  [TableRoles.COMMENTER]: 'commenter',
+  [TableRoles.VIEWER]: 'viewer',
+  [TableRoles.NO_ACCESS]: 'noaccess',
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
@@ -212,6 +230,12 @@ export const RoleColors = {
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
+  [TableRoles.OWNER]: 'purple',
+  [TableRoles.CREATOR]: 'blue',
+  [TableRoles.EDITOR]: 'green',
+  [TableRoles.COMMENTER]: 'orange',
+  [TableRoles.VIEWER]: 'yellow',
+  [TableRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
@@ -256,6 +280,12 @@ export const RoleIcons = {
   [ProjectRoles.COMMENTER]: 'role_commenter',
   [ProjectRoles.VIEWER]: 'role_viewer',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
+  [TableRoles.OWNER]: 'role_owner',
+  [TableRoles.CREATOR]: 'role_creator',
+  [TableRoles.EDITOR]: 'role_editor',
+  [TableRoles.COMMENTER]: 'role_commenter',
+  [TableRoles.VIEWER]: 'role_viewer',
+  [TableRoles.NO_ACCESS]: 'role_no_access',
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
@@ -296,6 +326,15 @@ export const OrderedProjectRoles = [
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
+];
+
+export const OrderedTableRoles = [
+  TableRoles.OWNER,
+  TableRoles.CREATOR,
+  TableRoles.EDITOR,
+  TableRoles.COMMENTER,
+  TableRoles.VIEWER,
+  TableRoles.NO_ACCESS,
 ];
 
 export enum PlanLimitTypes {

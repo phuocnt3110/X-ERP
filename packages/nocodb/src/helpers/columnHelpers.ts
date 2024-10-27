@@ -10,11 +10,13 @@ import type {
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
+  XLookupColumnReqType,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
+import type XLookupColumn from '~/models/XLookupColumn';
 import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
@@ -331,6 +333,58 @@ export async function validateLookupPayload(
   if (
     !(await relatedTable.getColumns(context)).find(
       (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
+    )
+  )
+    throw new Error('Lookup column not found in related table');
+}
+
+export async function validateXLookupPayload(
+  context: NcContext,
+  payload: ColumnReqType,
+  columnId?: string,
+) {
+  validateParams(
+    ['title', 'parentId', 'fk_parent_column_id', 'fk_child_column_id', 'fk_lookup_column_id'],
+    payload,
+  );
+
+  // check for circular reference
+  if (columnId) {
+    let lkCol: XLookupColumn | XLookupColumnReqType =
+      payload as XLookupColumnReqType;
+    while (lkCol) {
+      // check if lookup column is same as column itself
+      if (columnId === lkCol.fk_lookup_column_id)
+        throw new Error('Circular lookup reference not allowed');
+      lkCol = await Column.get(context, { colId: lkCol.fk_lookup_column_id }).then(
+        (c: Column) => {
+          if (c.uidt === 'XLookup') {
+            return c.getColOptions<XLookupColumn>(context);
+          }
+          return null;
+        },
+      );
+    }
+  }
+
+  const childColumn = await Column.get(context, {
+    colId: (payload as XLookupColumnReqType).fk_child_column_id,
+  })
+
+  if (!childColumn) {
+    throw new Error('Child column not found');
+  }
+
+  let parentColumn: Column = await(
+    await Column.get(context, {
+      colId: (payload as XLookupColumnReqType).fk_parent_column_id,
+  })
+  )
+
+  const relatedTable = await parentColumn.getModel(context);
+  if (
+    !(await relatedTable.getColumns(context)).find(
+      (c) => c.id === (payload as XLookupColumnReqType).fk_lookup_column_id,
     )
   )
     throw new Error('Lookup column not found in related table');

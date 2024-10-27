@@ -10,6 +10,9 @@ import {
   ProjectRoles,
   RelationTypes,
   UITypes,
+  TableRoles,
+  extractRolesObj,
+  OrgUserRoles,
 } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
@@ -22,7 +25,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility, TableUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -309,6 +312,7 @@ export class TablesService {
 
       if (table.type === ModelTypes.TABLE) {
         await sqlMgr.sqlOpPlus(source, 'tableDelete', table);
+        await TableUser.delete(context, param.tableId, param.user.id, ncMeta);
       } else if (table.type === ModelTypes.VIEW) {
         await sqlMgr.sqlOpPlus(source, 'viewDelete', {
           ...table,
@@ -341,6 +345,7 @@ export class TablesService {
   ) {
     const table = await Model.getWithInfo(context, {
       id: param.tableId,
+      user: param.user
     });
 
     if (!table) {
@@ -423,6 +428,7 @@ export class TablesService {
   async getAccessibleTables(
     context: NcContext,
     param: {
+      userId: string;
       baseId: string;
       sourceId: string;
       includeM2M?: boolean;
@@ -445,15 +451,12 @@ export class TablesService {
     }, {});
 
     const tableList = (
-      await Model.list(context, {
-        base_id: param.baseId,
-        source_id: param.sourceId,
-      })
+      await TableUser.getTablesList(param.userId, param.baseId, param.sourceId, param.roles)
     ).filter((t) => tableViewMapping[t.id]);
 
     return param.includeM2M
       ? tableList
-      : (tableList.filter((t) => !t.mm) as Model[]);
+      : tableList.filter((t) => !t.mm);
   }
 
   async tableCreate(
@@ -739,6 +742,13 @@ export class TablesService {
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
+
+    // Assign owner to table
+    await TableUser.insert(context, {
+      fk_model_id: result.id,
+      fk_user_id: param.user.id,
+      roles: TableRoles.OWNER,
+    });
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: result,

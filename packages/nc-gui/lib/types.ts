@@ -28,6 +28,7 @@ interface User {
   workspace_roles: RolesObj
   invite_token?: string
   base_id?: string
+  table_roles: RolesObj
   display_name?: string | null
   featureFlags?: Record<string, boolean>
 }
