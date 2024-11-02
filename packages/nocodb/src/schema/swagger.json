@@ -26567,7 +26567,8 @@
               "row_height": null,
               "updated_at": "2023-03-02 17:46:31",
               "uuid": null
-            }
+            },
+            "is_shared": false
           }
         ],
         "title": "View Model",
@@ -26656,6 +26657,10 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "is_shared": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this view shared view?"
           }
         },
         "required": [

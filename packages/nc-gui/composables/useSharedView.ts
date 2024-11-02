@@ -78,7 +78,7 @@ export function useSharedView() {
     }
 
     if (localPassword) password.value = localPassword
-    sharedView.value = { title: '', ...viewMeta } as ViewType
+    sharedView.value = { title: '', is_shared: true, ...viewMeta } as ViewType
     meta.value = { ...viewMeta.model }
 
     let order = 1
