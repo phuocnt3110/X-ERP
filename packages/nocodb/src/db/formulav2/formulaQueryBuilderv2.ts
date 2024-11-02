@@ -22,8 +22,9 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
-import { BaseUser } from '~/models';
+import { BaseUser, Filter } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
+import conditionV2 from '~/db/conditionV2';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -596,20 +597,32 @@ async function _formulaQueryBuilder(params: {
             await childModel.getColumns(context);
             const parentModel = await parentColumn.getModel(context);
             await parentModel.getColumns(context);
-                selectQb = knex(
-                  knex.raw(`?? as ??`, [
-                    baseModelSqlv2.getTnPath(parentModel.table_name),
-                    alias,
-                  ]),
-                ).where(
-                  `${alias}.${parentColumn.column_name}`,
-                  knex.raw(`??`, [
-                    `${
-                      tableAlias ??
-                      baseModelSqlv2.getTnPath(childModel.table_name)
-                    }.${childColumn.column_name}`,
-                  ]),
-                );
+            selectQb = knex(
+              knex.raw(`?? as ??`, [
+                baseModelSqlv2.getTnPath(parentModel.table_name),
+                alias,
+              ]),
+            );
+
+            await conditionV2(
+              baseModelSqlv2,
+              [
+                new Filter({
+                  id: null,
+                  fk_column_id: parentColumn.id,
+                  fk_model_id: parentColumn.fk_model_id,
+                  value: knex.raw(`??`, [
+                                  `${
+                                    tableAlias ??
+                                    baseModelSqlv2.getTnPath(childModel.table_name)
+                                  }.${childColumn.column_name}`,
+                                ]),
+                  comparison_op: 'eq',
+                })
+              ],
+              selectQb,
+              undefined,
+            );
 
             let lookupColumn = await lookup.getLookupColumn(context);
             let prevAlias = alias;
