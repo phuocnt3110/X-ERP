@@ -10,6 +10,7 @@ import type {
   CalendarView,
   LinkToAnotherRecordColumn,
   LookupColumn,
+  XLookupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
@@ -152,6 +153,11 @@ export class PublicMetasService {
         lookupColOption: await col.getColOptions<LookupColumn>(context),
         relatedMetas,
       });
+    } else if (UITypes.XLookup === col.uidt) {
+      await this.extractLookupRelatedMetas(context, {
+        xlookupColOption: await col.getColOptions<XLookupColumn>(context),
+        relatedMetas,
+      });
     }
   }
 
@@ -184,23 +190,36 @@ export class PublicMetasService {
   private async extractLookupRelatedMetas(
     context: NcContext,
     {
-      lookupColOption,
+      lookupColOption = undefined,
+      xlookupColOption = undefined,
       relatedMetas = {},
     }: {
-      lookupColOption: LookupColumn;
+      lookupColOption?: LookupColumn;
+      xlookupColOption?: XLookupColumn;
       relatedMetas: { [key: string]: Model };
     },
   ) {
-    const relationCol = await Column.get(context, {
-      colId: lookupColOption.fk_relation_column_id,
-    });
-    const lookedUpCol = await Column.get(context, {
-      colId: lookupColOption.fk_lookup_column_id,
-    });
+    let relationCol = undefined, lookedUpCol = undefined;
+
+    if (lookupColOption) {
+      relationCol = await Column.get(context, {
+        colId: lookupColOption.fk_relation_column_id,
+      });
+      lookedUpCol = await Column.get(context, {
+        colId: lookupColOption.fk_lookup_column_id,
+      });
+    } else if (xlookupColOption) {
+      relationCol = await Column.get(context, {
+        colId: xlookupColOption.fk_parent_column_id,
+      });
+      lookedUpCol = await Column.get(context, {
+        colId: xlookupColOption.fk_lookup_column_id,
+      });
+    }
 
     // extract meta for table which belongs the relation column
     // if not already extracted
-    if (!relatedMetas[relationCol.fk_model_id]) {
+    if (relationCol && !relatedMetas[relationCol.fk_model_id]) {
       relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo(context, {
         id: relationCol.fk_model_id,
       });
@@ -208,17 +227,19 @@ export class PublicMetasService {
 
     // extract meta for table in which looked up column belongs
     // if not already extracted
-    if (!relatedMetas[lookedUpCol.fk_model_id]) {
+    if (lookedUpCol && !relatedMetas[lookedUpCol.fk_model_id]) {
       relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(context, {
         id: lookedUpCol.fk_model_id,
       });
     }
 
     // extract metas related to the looked up column
-    await this.extractRelatedMetas(context, {
-      col: lookedUpCol,
-      relatedMetas,
-    });
+    if (lookedUpCol) {
+      await this.extractRelatedMetas(context, {
+        col: lookedUpCol,
+        relatedMetas,
+      });
+    }
   }
 
   async publicSharedBaseGet(
