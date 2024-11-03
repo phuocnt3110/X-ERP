@@ -1384,7 +1384,9 @@ onMounted(() => {
     .toBeTruthy()
     .then(() => calculateSlices())
 
-  loadCollaborators()
+  if (!view.value.is_shared) {
+    loadCollaborators()
+  }
 })
 
 // #Listeners
