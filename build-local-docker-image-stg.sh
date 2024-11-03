@@ -9,18 +9,18 @@
 # 4. Build nocodb
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-LOG_FILE=${SCRIPT_DIR}/build-local-docker-image.log
+LOG_FILE=${SCRIPT_DIR}/build-local-docker-image-stg.log
 ERROR=""
 
 function stop_and_remove_container() {
     # Stop and remove the existing container
-    docker stop xerp-prod-env >/dev/null 2>&1
-    docker rm xerp-prod-env >/dev/null 2>&1
+    docker stop xerp-stg-env >/dev/null 2>&1
+    docker rm xerp-stg-env >/dev/null 2>&1
 }
 
 function remove_image() {
     # Remove the existing image
-    docker rmi xerp-prod-env >/dev/null 2>&1
+    docker rmi xerp-stg-env >/dev/null 2>&1
 }
 
 function install_dependencies() {
@@ -50,18 +50,18 @@ function package_nocodb() {
 
 function build_image() {
     # build docker
-    docker build . -f Dockerfile.local -t xerp-prod-env || ERROR="build_image failed"
+    docker build . -f Dockerfile.local -t xerp-stg-env || ERROR="build_image failed"
 }
 
 function log_message() {
     if [[ ${ERROR} != "" ]];
     then
-        >&2 echo "build failed, Please check build-local-docker-image.log for more details"
+        >&2 echo "build failed, Please check build-local-docker-image-stg.log for more details"
         >&2 echo "ERROR: ${ERROR}"
         exit 1
     else
-        echo 'docker image with tag "xerp-prod-env" built sussessfully. Use below sample command to run the container'
-        echo 'docker run -d -p 3333:8080 --name xerp-prod-env xerp-prod-env '
+        echo 'docker image with tag "xerp-stg-env" built sussessfully. Use below sample command to run the container'
+        echo 'docker run -d -p 3333:8080 --name xerp-stg-env xerp-stg-env '
     fi
 }
 
