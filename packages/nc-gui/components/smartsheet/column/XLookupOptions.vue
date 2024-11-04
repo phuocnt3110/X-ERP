@@ -45,7 +45,7 @@ const refTables = computed(() => {
   return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id && t.id !== formState.value.model_id)
 })
 
-const allowXLookupTypes = [UITypes.ID, UITypes.SingleLineText, UITypes.Number, UITypes.Decimal, UITypes.Lookup, 
+const allowXLookupTypes = [UITypes.ID, UITypes.SingleLineText, UITypes.Number, UITypes.Decimal, 
   UITypes.PhoneNumber, UITypes.Email, UITypes.Formula, UITypes.User
 ]
 
@@ -64,7 +64,7 @@ const selectedChildColumn = computed<ColumnType[]>(() => {
     return undefined
   }
   return meta.value.columns.find(
-    (c: ColumnType) => c.id === vModel.value.fk_child_column_id
+    (c: ColumnType) => c.id === vModel.value.fk_child_column_id && allowXLookupTypes.includes(c.uidt)
   )
 })
 

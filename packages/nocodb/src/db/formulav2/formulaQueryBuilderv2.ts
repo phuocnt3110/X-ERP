@@ -604,6 +604,27 @@ async function _formulaQueryBuilder(params: {
               ]),
             );
 
+            let val;
+            if (childColumn.uidt === UITypes.Formula) {
+              const formula = await childColumn.getColOptions<FormulaColumn>(context);
+              val = (
+                await formulaQueryBuilderv2(
+                    baseModelSqlv2,
+                    formula.formula,
+                    null,
+                    childModel,
+                    childColumn,
+                  )
+                ).builder
+            } else {
+              val = knex.raw(`??`, [
+                      `${
+                        tableAlias ??
+                        baseModelSqlv2.getTnPath(childModel.table_name)
+                      }.${childColumn.column_name}`,
+                    ])
+            }
+
             await conditionV2(
               baseModelSqlv2,
               [
@@ -611,12 +632,7 @@ async function _formulaQueryBuilder(params: {
                   id: null,
                   fk_column_id: parentColumn.id,
                   fk_model_id: parentColumn.fk_model_id,
-                  value: knex.raw(`??`, [
-                                  `${
-                                    tableAlias ??
-                                    baseModelSqlv2.getTnPath(childModel.table_name)
-                                  }.${childColumn.column_name}`,
-                                ]),
+                  value: val,
                   comparison_op: 'eq',
                 })
               ],
