@@ -587,8 +587,7 @@ async function _formulaQueryBuilder(params: {
         aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
-          let isMany = false;
-          const alias = `__nc_formula${aliasCount++}`;
+          let isMany = true;
           const lookup = await col.getColOptions<XLookupColumn>(context);
           {
             const childColumn = await lookup.getChildColumn(context);
@@ -598,9 +597,8 @@ async function _formulaQueryBuilder(params: {
             const parentModel = await parentColumn.getModel(context);
             await parentModel.getColumns(context);
             selectQb = knex(
-              knex.raw(`?? as ??`, [
+              knex.raw(`??`, [
                 baseModelSqlv2.getTnPath(parentModel.table_name),
-                alias,
               ]),
             );
 
@@ -611,7 +609,7 @@ async function _formulaQueryBuilder(params: {
                 await formulaQueryBuilderv2(
                     baseModelSqlv2,
                     formula.formula,
-                    null,
+                    undefined,
                     childModel,
                     childColumn,
                   )
@@ -923,7 +921,7 @@ async function _formulaQueryBuilder(params: {
                         getAggregateFn(fn)({
                           qb,
                           knex,
-                          cn: `${prevAlias}.${lookupColumn.column_name}`,
+                          cn: prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: lookupColumn.column_name,
                         }),
                       )
                       .wrap('(', ')');
@@ -1178,7 +1176,7 @@ async function _formulaQueryBuilder(params: {
         break;
       default:
         aliasToColumn[col.id] = () =>
-          Promise.resolve({ builder: col.column_name });
+          Promise.resolve({ builder: `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${col.column_name}` });
         break;
     }
   }
