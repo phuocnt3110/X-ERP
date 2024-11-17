@@ -785,6 +785,7 @@ export class DatabricksUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'COUNT_ITEM',
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',

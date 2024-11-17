@@ -1147,6 +1147,7 @@ export class AtImportProcessor {
         COUNT: 'count',
         COUNTA: '',
         COUNTALL: 'count',
+        COUNT_ITEM: '',
         MAX: 'max',
         MIN: 'min',
         OR: '',

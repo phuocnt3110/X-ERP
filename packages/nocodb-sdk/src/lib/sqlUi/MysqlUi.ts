@@ -1332,7 +1332,7 @@ export class MysqlUi {
   }
 
   static getUnsupportedFnList() {
-    return ['COUNTA', 'COUNT', 'DATESTR'];
+    return ['COUNTA', 'COUNT', 'DATESTR', 'COUNT_ITEM'];
   }
 
   static isEqual(dataType1: string, dataType2: string) {
