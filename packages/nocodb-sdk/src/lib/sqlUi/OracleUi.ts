@@ -946,6 +946,7 @@ export class OracleUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'COUNT_ITEM',
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',

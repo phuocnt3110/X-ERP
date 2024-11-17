@@ -1307,6 +1307,19 @@ export const formulas: Record<string, FormulaMeta> = {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#counta',
   },
+  COUNT_ITEM: {
+    validation: {
+      args: {
+        min: 1,
+      },
+    },
+    description: 'Counts non-empty items',
+    syntax: 'COUNT_ITEM(value1, [value2, ...])',
+    examples: ['COUNT_ITEM({field1}, {field2})'],
+    returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#count_item',
+  },
   COUNT: {
     validation: {
       args: {

@@ -1031,6 +1031,7 @@ export class SnowflakeUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'COUNT_ITEM',
       'DATESTR',
     ];
   }
