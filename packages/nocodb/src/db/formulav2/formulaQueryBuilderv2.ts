@@ -919,11 +919,11 @@ async function _formulaQueryBuilder(params: {
                 {
                   const qb = selectQb;
                   selectQb = (fn) => {
-                    const cn = prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: lookupColumn.column_name;
+                    const cn = prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${lookupColumn.column_name}`;
                     return knex
                       .raw(
                         fn === 'COUNT_ITEM' ?
-                        qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN ${cn} IS NOT NULL AND ${cn}::text != '' THEN 1 ELSE 0 END), 0)`))
+                        qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END), 0)`, [cn, cn]))
                         : getAggregateFn(fn)({
                           qb,
                           knex,
