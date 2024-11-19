@@ -922,6 +922,7 @@ export class SqliteUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'COUNT_ITEM',
       'DATESTR',
       'DAY',
       'MONTH',

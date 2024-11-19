@@ -300,6 +300,20 @@ const pg = {
       ),
     };
   },
+  COUNT_ITEM: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder:  knex.raw(
+        `(${(
+          await Promise.all(
+            pt.arguments.map(async (arg) => {
+              const { builder } = await fn(arg);
+              return builder.toQuery();
+            }),
+          )
+        ).join(' + ')}) ${colAlias}`,
+      ),
+    }
+  },
   VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder.toString();
 

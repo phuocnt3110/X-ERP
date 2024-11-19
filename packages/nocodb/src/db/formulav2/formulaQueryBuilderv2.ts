@@ -897,13 +897,16 @@ async function _formulaQueryBuilder(params: {
                   });
                   if (isMany) {
                     const qb = selectQb;
+                    const cn = knex.raw(builder).wrap('(', ')');
                     selectQb = (fn) =>
                       knex
                         .raw(
-                          getAggregateFn(fn)({
+                          fn === 'COUNT_ITEM' ?
+                          qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN (??) IS NOT NULL AND (??)::text != '' THEN 1 ELSE 0 END), 0)`, [cn, cn]))
+                          : getAggregateFn(fn)({
                             qb,
                             knex,
-                            cn: knex.raw(builder).wrap('(', ')'),
+                            cn,
                           }),
                         )
                         .wrap('(', ')');
@@ -915,16 +918,20 @@ async function _formulaQueryBuilder(params: {
               default:
                 {
                   const qb = selectQb;
-                  selectQb = (fn) =>
-                    knex
+                  selectQb = (fn) => {
+                    const cn = prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${lookupColumn.column_name}`;
+                    return knex
                       .raw(
-                        getAggregateFn(fn)({
+                        fn === 'COUNT_ITEM' ?
+                        qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END), 0)`, [cn, cn]))
+                        : getAggregateFn(fn)({
                           qb,
                           knex,
-                          cn: prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: lookupColumn.column_name,
+                          cn,
                         }),
                       )
                       .wrap('(', ')');
+                    }
                 }
 
                 break;
@@ -1355,7 +1362,14 @@ async function _formulaQueryBuilder(params: {
     } else if (pt.type === 'Identifier') {
       const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {
-        return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
+        const cn = builder(pt.fnName)
+        if (pt.fnName === 'COUNT_ITEM' && columnIdToUidt[pt.name] !== UITypes.XLookup) {
+          return { builder: knex.raw(
+            `(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END) ${colAlias}`, [cn, cn]
+          ) };
+        }
+
+        return { builder: knex.raw(`??${colAlias}`, cn) };
       }
 
       if (
@@ -1368,6 +1382,13 @@ async function _formulaQueryBuilder(params: {
             `${builder.toQuery().replace(/\)$/, '')} LIMIT 1)${colAlias}`,
           ),
         };
+      }
+
+      if (pt.fnName === 'COUNT_ITEM' && columnIdToUidt[pt.name] !== UITypes.XLookup) {
+        const cn = builder || pt.name;
+        return { builder: knex.raw(
+          `(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END) ${colAlias}`, [cn, cn]
+        ) };
       }
 
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
