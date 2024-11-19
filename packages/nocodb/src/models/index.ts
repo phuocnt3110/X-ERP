@@ -22,6 +22,7 @@ export { default as KanbanView } from './KanbanView';
 export { default as KanbanViewColumn } from './KanbanViewColumn';
 export { default as LinkToAnotherRecordColumn } from './LinkToAnotherRecordColumn';
 export { default as LookupColumn } from './LookupColumn';
+export { default as XLookupColumn } from './XLookupColumn';
 export { default as MapView } from './MapView';
 export { default as MapViewColumn } from './MapViewColumn';
 export { default as Model } from './Model';

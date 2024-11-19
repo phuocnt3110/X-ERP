@@ -1078,9 +1078,14 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.XLookup: {
         // XLookupColumn.insert()
 
-        await ncMeta.metaDelete(null, null, MetaTable.COL_XLOOKUP, {
-          fk_column_id: colId,
-        });
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_XLOOKUP, 
+          {
+            fk_column_id: colId,
+          }
+        );
         await NocoCache.deepDel(
           `${CacheScope.COL_XLOOKUP}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,

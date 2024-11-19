@@ -22,8 +22,9 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
-import { BaseUser } from '~/models';
+import { BaseUser, Filter } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
+import conditionV2 from '~/db/conditionV2';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -586,8 +587,7 @@ async function _formulaQueryBuilder(params: {
         aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
-          let isMany = false;
-          const alias = `__nc_formula${aliasCount++}`;
+          let isMany = true;
           const lookup = await col.getColOptions<XLookupColumn>(context);
           {
             const childColumn = await lookup.getChildColumn(context);
@@ -596,20 +596,47 @@ async function _formulaQueryBuilder(params: {
             await childModel.getColumns(context);
             const parentModel = await parentColumn.getModel(context);
             await parentModel.getColumns(context);
-                selectQb = knex(
-                  knex.raw(`?? as ??`, [
-                    baseModelSqlv2.getTnPath(parentModel.table_name),
-                    alias,
-                  ]),
-                ).where(
-                  `${alias}.${parentColumn.column_name}`,
-                  knex.raw(`??`, [
-                    `${
-                      tableAlias ??
-                      baseModelSqlv2.getTnPath(childModel.table_name)
-                    }.${childColumn.column_name}`,
-                  ]),
-                );
+            selectQb = knex(
+              knex.raw(`??`, [
+                baseModelSqlv2.getTnPath(parentModel.table_name),
+              ]),
+            );
+
+            let val;
+            if (childColumn.uidt === UITypes.Formula) {
+              const formula = await childColumn.getColOptions<FormulaColumn>(context);
+              val = (
+                await formulaQueryBuilderv2(
+                    baseModelSqlv2,
+                    formula.formula,
+                    undefined,
+                    childModel,
+                    childColumn,
+                  )
+                ).builder
+            } else {
+              val = knex.raw(`??`, [
+                      `${
+                        tableAlias ??
+                        baseModelSqlv2.getTnPath(childModel.table_name)
+                      }.${childColumn.column_name}`,
+                    ])
+            }
+
+            await conditionV2(
+              baseModelSqlv2,
+              [
+                new Filter({
+                  id: null,
+                  fk_column_id: parentColumn.id,
+                  fk_model_id: parentColumn.fk_model_id,
+                  value: val,
+                  comparison_op: 'eq',
+                })
+              ],
+              selectQb,
+              undefined,
+            );
 
             let lookupColumn = await lookup.getLookupColumn(context);
             let prevAlias = alias;
@@ -870,13 +897,16 @@ async function _formulaQueryBuilder(params: {
                   });
                   if (isMany) {
                     const qb = selectQb;
+                    const cn = knex.raw(builder).wrap('(', ')');
                     selectQb = (fn) =>
                       knex
                         .raw(
-                          getAggregateFn(fn)({
+                          fn === 'COUNT_ITEM' ?
+                          qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN (??) IS NOT NULL AND (??)::text != '' THEN 1 ELSE 0 END), 0)`, [cn, cn]))
+                          : getAggregateFn(fn)({
                             qb,
                             knex,
-                            cn: knex.raw(builder).wrap('(', ')'),
+                            cn,
                           }),
                         )
                         .wrap('(', ')');
@@ -888,16 +918,20 @@ async function _formulaQueryBuilder(params: {
               default:
                 {
                   const qb = selectQb;
-                  selectQb = (fn) =>
-                    knex
+                  selectQb = (fn) => {
+                    const cn = prevAlias ? `${prevAlias}.${lookupColumn.column_name}`: `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${lookupColumn.column_name}`;
+                    return knex
                       .raw(
-                        getAggregateFn(fn)({
+                        fn === 'COUNT_ITEM' ?
+                        qb.clear('select').select(knex.raw(`COALESCE(SUM(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END), 0)`, [cn, cn]))
+                        : getAggregateFn(fn)({
                           qb,
                           knex,
-                          cn: `${prevAlias}.${lookupColumn.column_name}`,
+                          cn,
                         }),
                       )
                       .wrap('(', ')');
+                    }
                 }
 
                 break;
@@ -1149,7 +1183,7 @@ async function _formulaQueryBuilder(params: {
         break;
       default:
         aliasToColumn[col.id] = () =>
-          Promise.resolve({ builder: col.column_name });
+          Promise.resolve({ builder: `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${col.column_name}` });
         break;
     }
   }
@@ -1328,7 +1362,14 @@ async function _formulaQueryBuilder(params: {
     } else if (pt.type === 'Identifier') {
       const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {
-        return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
+        const cn = builder(pt.fnName)
+        if (pt.fnName === 'COUNT_ITEM' && columnIdToUidt[pt.name] !== UITypes.XLookup) {
+          return { builder: knex.raw(
+            `(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END) ${colAlias}`, [cn, cn]
+          ) };
+        }
+
+        return { builder: knex.raw(`??${colAlias}`, cn) };
       }
 
       if (
@@ -1341,6 +1382,13 @@ async function _formulaQueryBuilder(params: {
             `${builder.toQuery().replace(/\)$/, '')} LIMIT 1)${colAlias}`,
           ),
         };
+      }
+
+      if (pt.fnName === 'COUNT_ITEM' && columnIdToUidt[pt.name] !== UITypes.XLookup) {
+        const cn = builder || pt.name;
+        return { builder: knex.raw(
+          `(CASE WHEN ?? IS NOT NULL AND ??::text != '' THEN 1 ELSE 0 END) ${colAlias}`, [cn, cn]
+        ) };
       }
 
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };

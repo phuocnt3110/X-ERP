@@ -963,6 +963,7 @@ export class MssqlUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'COUNT_ITEM',
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
