@@ -117,7 +117,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full">
+        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full gap-1.5">
           <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
@@ -125,14 +125,20 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               (lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO)
             "
           >
-            <LazySmartsheetVirtualCell
+            <div
               v-for="(v, i) of arrValue"
               :key="i"
-              :edit-enabled="false"
-              :model-value="v"
-              :column="lookupColumn"
-              :read-only="true"
-            />
+              class="bg-gray-100 rounded-full border-gray-200 rounded border-1"
+            >
+              <LazySmartsheetVirtualCell
+                :edit-enabled="false"
+                :model-value="v"
+                :column="lookupColumn"
+                :read-only="true"
+                :virtual="true"
+                class="!min-w-20 !w-auto px-2"
+              />
+            </div>
           </template>
 
           <LazySmartsheetVirtualCell
