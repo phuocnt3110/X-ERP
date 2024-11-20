@@ -121,7 +121,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
-      req.ncTableId = params.tableId;
+      req.ncTableId = model.id;
     } else if (params.viewId) {
       const view =
         (await View.get(context, params.viewId)) ||
