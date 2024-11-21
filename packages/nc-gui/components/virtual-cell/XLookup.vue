@@ -117,7 +117,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full gap-1.5">
+        <div v-if="isVirtualCol(lookupColumn)" class="flex items-start w-full h-full gap-1.5 py-[3px]"
+          :class="{
+            'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
+            '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
+              rowHeight === 1 || isAttachment(lookupColumn),
+          }">
           <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
@@ -128,7 +133,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
             <div
               v-for="(v, i) of arrValue"
               :key="i"
-              class="bg-gray-100 rounded-full border-gray-200 rounded border-1"
+              class="bg-gray-100 rounded-full border-gray-200 rounded border-1 my-auto"
             >
               <LazySmartsheetVirtualCell
                 :edit-enabled="false"
@@ -174,6 +179,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
+                  class="my-auto"
                   :class="{
                     'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
                     'border-gray-200 rounded border-1': ![

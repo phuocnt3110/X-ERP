@@ -286,10 +286,11 @@ export default class Sort {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    const view = await View.get(context, this.fk_view_id, ncMeta);
     return Model.getByIdOrName(
       context,
       {
-        id: this.fk_view_id,
+        id: view.fk_model_id,
       },
       ncMeta,
     );
