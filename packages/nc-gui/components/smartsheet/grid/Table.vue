@@ -1384,7 +1384,7 @@ onMounted(() => {
     .toBeTruthy()
     .then(() => calculateSlices())
 
-  if (!view.value.is_shared) {
+  if (!view.value.is_shared && hasEditPermission.value) {
     loadCollaborators()
   }
 })

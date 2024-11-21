@@ -23,7 +23,7 @@ export class CalendarDatasController {
   constructor(private readonly calendarDatasService: CalendarDatasService) {}
 
   @Get(['/api/v1/db/calendar-data/:orgs/:baseName/:tableName/views/:viewName'])
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async dataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -42,7 +42,7 @@ export class CalendarDatasController {
   @Get([
     '/api/v1/db/calendar-data/:orgs/:baseName/:tableName/views/:viewName/countByDate/',
   ])
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async calendarDataCount(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

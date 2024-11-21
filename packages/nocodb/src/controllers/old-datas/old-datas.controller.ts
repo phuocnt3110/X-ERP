@@ -24,7 +24,7 @@ export class OldDatasController {
   constructor(private readonly oldDatasService: OldDatasService) {}
 
   @Get('/nc/:baseId/api/v1/:tableName')
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async dataList(
     @TenantContext() context: NcContext,
     @Request() req,
@@ -42,7 +42,7 @@ export class OldDatasController {
   }
 
   @Get('/nc/:baseId/api/v1/:tableName/count')
-  @Acl('dataCount')
+  @Acl('dataCount', {scope: 'table'})
   async dataCount(
     @TenantContext() context: NcContext,
     @Request() req,
@@ -61,7 +61,7 @@ export class OldDatasController {
 
   @Post('/nc/:baseId/api/v1/:tableName')
   @HttpCode(200)
-  @Acl('dataInsert')
+  @Acl('dataInsert', {scope: 'table'})
   async dataInsert(
     @TenantContext() context: NcContext,
     @Request() req,
@@ -81,7 +81,7 @@ export class OldDatasController {
   }
 
   @Get('/nc/:baseId/api/v1/:tableName/:rowId')
-  @Acl('dataRead')
+  @Acl('dataRead', {scope: 'table'})
   async dataRead(
     @TenantContext() context: NcContext,
     @Request() req,
@@ -101,7 +101,7 @@ export class OldDatasController {
   }
 
   @Patch('/nc/:baseId/api/v1/:tableName/:rowId')
-  @Acl('dataUpdate')
+  @Acl('dataUpdate', {scope: 'table'})
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Request() req,
@@ -122,7 +122,7 @@ export class OldDatasController {
   }
 
   @Delete('/nc/:baseId/api/v1/:tableName/:rowId')
-  @Acl('dataDelete')
+  @Acl('dataDelete', {scope: 'table'})
   async dataDelete(
     @TenantContext() context: NcContext,
     @Request() req,
