@@ -23,7 +23,7 @@ export class DatasController {
   constructor(private readonly datasService: DatasService) {}
 
   @Get('/data/:viewId/')
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async dataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -36,7 +36,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId/mm/:colId')
-  @Acl('mmList')
+  @Acl('mmList', {scope: 'table'})
   async mmList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -53,7 +53,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId/mm/:colId/exclude')
-  @Acl('mmExcludedList')
+  @Acl('mmExcludedList', {scope: 'table'})
   async mmExcludedList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -70,7 +70,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId/hm/:colId/exclude')
-  @Acl('hmExcludedList')
+  @Acl('hmExcludedList', {scope: 'table'})
   async hmExcludedList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -87,7 +87,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId/bt/:colId/exclude')
-  @Acl('btExcludedList')
+  @Acl('btExcludedList', {scope: 'table'})
   async btExcludedList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -104,7 +104,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId/hm/:colId')
-  @Acl('hmList')
+  @Acl('hmList', {scope: 'table'})
   async hmList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -121,7 +121,7 @@ export class DatasController {
   }
 
   @Get('/data/:viewId/:rowId')
-  @Acl('dataRead')
+  @Acl('dataRead', {scope: 'table'})
   async dataRead(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -137,7 +137,7 @@ export class DatasController {
 
   @Post('/data/:viewId/')
   @HttpCode(200)
-  @Acl('dataInsert')
+  @Acl('dataInsert', {scope: 'table'})
   async dataInsert(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -152,7 +152,7 @@ export class DatasController {
   }
 
   @Patch('/data/:viewId/:rowId')
-  @Acl('dataUpdate')
+  @Acl('dataUpdate', {scope: 'table'})
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -169,7 +169,7 @@ export class DatasController {
   }
 
   @Delete('/data/:viewId/:rowId')
-  @Acl('dataDelete')
+  @Acl('dataDelete', {scope: 'table'})
   async dataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -184,7 +184,7 @@ export class DatasController {
   }
 
   @Delete('/data/:viewId/:rowId/:relationType/:colId/:childId')
-  @Acl('relationDataDelete')
+  @Acl('relationDataDelete', {scope: 'table'})
   async relationDataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -207,7 +207,7 @@ export class DatasController {
 
   @Post('/data/:viewId/:rowId/:relationType/:colId/:childId')
   @HttpCode(200)
-  @Acl('relationDataAdd')
+  @Acl('relationDataAdd', {scope: 'table'})
   async relationDataAdd(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

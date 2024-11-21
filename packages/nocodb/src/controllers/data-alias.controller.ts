@@ -251,7 +251,7 @@ export class DataAliasController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/group/:columnId',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/group/:columnId',
   ])
-  @Acl('groupedDataList')
+  @Acl('groupedDataList', {scope: 'table'})
   async groupedDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
