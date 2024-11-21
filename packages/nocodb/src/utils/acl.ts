@@ -99,7 +99,6 @@ const permissionScopes = {
     'relationListAll',
     'indexList',
     'list',
-    'dataAggregate',
     'swaggerJson',
     'commentsCount',
     'commentDelete',
@@ -168,6 +167,7 @@ const permissionScopes = {
     'tableUserUpdate',
     'tableUserDelete',
     'webhook',
+    'dataAggregate',
     'fieldEdit',
     'fieldAdd',
     'tableIconEdit',
@@ -257,7 +257,6 @@ const rolePermissions:
       relationListAll: true,
       indexList: true,
       list: true,
-      dataAggregate: true,
       swaggerJson: true,
 
       baseUserList: true,
@@ -431,6 +430,7 @@ const rolePermissions:
       dataFindOne: true,
       columnsHash: true,
       viewList: true,
+      dataAggregate: true,
     },
   },
   [TableRoles.NO_ACCESS]: {
