@@ -115,7 +115,7 @@ export class AttachmentsSecureController {
 
   @UseGuards(DataApiLimiterGuard, GlobalGuard)
   @Get('/api/v2/downloadAttachment/:modelId/:columnId/:rowId')
-  @Acl('dataRead')
+  @Acl('dataRead', {scope: 'table'})
   async downloadAttachment(
     @TenantContext() context: NcContext,
     @Param('modelId') modelId: string,

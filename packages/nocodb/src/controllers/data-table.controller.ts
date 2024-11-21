@@ -28,7 +28,7 @@ export class DataTableController {
 
   // todo: Handle the error case where view doesnt belong to model
   @Get('/api/v2/tables/:modelId/records')
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async dataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -48,7 +48,7 @@ export class DataTableController {
   }
 
   @Get(['/api/v2/tables/:modelId/records/count'])
-  @Acl('dataCount')
+  @Acl('dataCount', {scope: 'table'})
   async dataCount(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -67,7 +67,7 @@ export class DataTableController {
 
   @Post(['/api/v2/tables/:modelId/records'])
   @HttpCode(200)
-  @Acl('dataInsert')
+  @Acl('dataInsert', {scope: 'table'})
   async dataInsert(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -84,7 +84,7 @@ export class DataTableController {
   }
 
   @Patch(['/api/v2/tables/:modelId/records'])
-  @Acl('dataUpdate')
+  @Acl('dataUpdate', {scope: 'table'})
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -101,7 +101,7 @@ export class DataTableController {
   }
 
   @Delete(['/api/v2/tables/:modelId/records'])
-  @Acl('dataDelete')
+  @Acl('dataDelete', {scope: 'table'})
   async dataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -118,7 +118,7 @@ export class DataTableController {
   }
 
   @Get(['/api/v2/tables/:modelId/aggregate'])
-  @Acl('dataAggregate')
+  @Acl('dataAggregate', {scope: 'table'})
   async dataAggregate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -133,7 +133,7 @@ export class DataTableController {
   }
 
   @Post(['/api/v2/tables/:modelId/bulk/group'])
-  @Acl('dataGroupBy')
+  @Acl('dataGroupBy', {scope: 'table'})
   async bulkGroupBy(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -149,7 +149,7 @@ export class DataTableController {
   }
 
   @Post(['/api/v2/tables/:modelId/bulk/datalist'])
-  @Acl('dataList')
+  @Acl('dataList', {scope: 'table'})
   async bulkDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -165,7 +165,7 @@ export class DataTableController {
   }
 
   @Get(['/api/v2/tables/:modelId/records/:rowId'])
-  @Acl('dataRead')
+  @Acl('dataRead', {scope: 'table'})
   async dataRead(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -182,7 +182,7 @@ export class DataTableController {
   }
 
   @Get(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
-  @Acl('nestedDataList')
+  @Acl('nestedDataList', {scope: 'table'})
   async nestedDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -201,7 +201,7 @@ export class DataTableController {
   }
 
   @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
-  @Acl('nestedDataLink')
+  @Acl('nestedDataLink', {scope: 'table'})
   async nestedLink(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -230,7 +230,7 @@ export class DataTableController {
   }
 
   @Delete(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])
-  @Acl('nestedDataUnlink')
+  @Acl('nestedDataUnlink', {scope: 'table'})
   async nestedUnlink(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
@@ -254,7 +254,7 @@ export class DataTableController {
 
   // todo: naming
   @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
-  @Acl('nestedDataListCopyPasteOrDeleteAll')
+  @Acl('nestedDataListCopyPasteOrDeleteAll', {scope: 'table'})
   async nestedListCopyPasteOrDeleteAll(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
